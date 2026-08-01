@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="claude">
+<head>
+<meta charset="UTF-8">
+<title>The Docket</title>
+<style>
+  :root{
+    /* ===== Discord theme (default) ===== */
+    --primary:#5865f2;
+    --primary-active:#4752c4;
+    --on-primary:#ffffff;
+    --btn-bg:#35ed7e;
+    --btn-text:#000000;
+    --btn-active-bg:#2fd671;
+    --btn-radius:12px;
+    --btn-weight:600;
+    --btn-transform:uppercase;
+    --btn-tracking:0.02em;
+
+    --eyebrow-bg:#ec48bd;
+    --eyebrow-text:#ffffff;
+
+    --canvas:#0a0d3a;
+    --page-bg-image:
+      radial-gradient(circle at 15% 0%, rgba(88,101,242,0.35), transparent 45%),
+      radial-gradient(circle at 90% 25%, rgba(236,72,189,0.22), transparent 50%);
+
+    --surface-1:#1e2353;
+    --surface-2:#23272a;
+    --border-1:rgba(255,255,255,0.10);
+
+    --ink:#ffffff;
+    --body-text:#ffffff;
+    --muted:#a7abd6;
+
+    --input-bg:rgba(255,255,255,0.06);
+    --input-border:rgba(255,255,255,0.10);
+    --input-radius:16px;
+    --input-focus-border:#00b0f4;
+    --input-focus-ring:rgba(0,176,244,0.25);
+
+    --card-radius:32px;
+    --card-shadow:0 3px 68px rgba(69,42,124,0.25);
+
+    --heading-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --heading-weight:800;
+    --heading-transform:uppercase;
+    --heading-tracking:0;
+    --body-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+
+    --tab-radius:9999px;
+    --tab-active-bg:#5865f2;
+    --tab-active-text:#ffffff;
+    --tab-inactive-bg:rgba(255,255,255,0.05);
+    --tab-inactive-text:#a7abd6;
+    --tab-active-shadow:0 3px 14px rgba(88,101,242,0.45);
+
+    --link-color:#00b0f4;
+    --case-no-color:#ec48bd;
+
+    --cat-badge-bg:#ec48bd;
+    --cat-badge-text:#ffffff;
+    --used-badge-bg:#00b0f4;
+    --used-badge-text:#0a0d3a;
+    --answered-badge-bg:#35ed7e;
+    --answered-badge-text:#0a0d3a;
+    --essay-panel-bg:rgba(0,176,244,0.08);
+    --essay-panel-border:#00b0f4;
+
+    --divider:linear-gradient(90deg, #5865f2, #ec48bd);
+
+    --danger:#ed4245;
+    --accent2:#ec48bd;
+
+    --modal-bg-color:#1e2353;
+    --modal-radius:16px;
+    --modal-shadow:0 3px 68px rgba(88,101,242,0.35);
+
+    --dropzone-border:rgba(0,176,244,0.4);
+    --dropzone-bg:rgba(0,176,244,0.05);
+    --dropzone-active-bg:rgba(0,176,244,0.1);
+    --dropzone-active-border:#00b0f4;
+    --dropzone-icon-bg:#00b0f4;
+    --dropzone-icon-text:#0a0d3a;
+
+    --entry-hover-shadow:0 6px 24px rgba(88,101,242,0.18);
+    --entry-hover-border:rgba(88,101,242,0.4);
+    --entry-used-border:#00b0f4;
+  }
+
+  html[data-theme="claude"]{
+    --primary:#cc785c;
+    --primary-active:#a9583e;
+    --on-primary:#ffffff;
+    --btn-bg:#cc785c;
+    --btn-text:#ffffff;
+    --btn-active-bg:#a9583e;
+    --btn-radius:8px;
+    --btn-weight:500;
+    --btn-transform:none;
+    --btn-tracking:0;
+
+    --eyebrow-bg:#cc785c;
+    --eyebrow-text:#ffffff;
+
+    --canvas:#faf9f5;
+    --page-bg-image:none;
+
+    --surface-1:#efe9de;
+    --surface-2:#faf9f5;
+    --border-1:#e6dfd8;
+
+    --ink:#141413;
+    --body-text:#3d3d3a;
+    --muted:#6c6a64;
+
+    --input-bg:#faf9f5;
+    --input-border:#e6dfd8;
+    --input-radius:8px;
+    --input-focus-border:#cc785c;
+    --input-focus-ring:rgba(204,120,92,0.15);
+
+    --card-radius:12px;
+    --card-shadow:none;
+
+    --heading-font:Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+    --heading-weight:400;
+    --heading-transform:none;
+    --heading-tracking:-0.02em;
+    --body-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+
+    --tab-radius:8px;
+    --tab-active-bg:#efe9de;
+    --tab-active-text:#141413;
+    --tab-inactive-bg:transparent;
+    --tab-inactive-text:#6c6a64;
+    --tab-active-shadow:none;
+
+    --link-color:#cc785c;
+    --case-no-color:#8e8b82;
+
+    --cat-badge-bg:#efe9de;
+    --cat-badge-text:#141413;
+    --used-badge-bg:#5db8a6;
+    --used-badge-text:#ffffff;
+    --answered-badge-bg:#5db872;
+    --answered-badge-text:#ffffff;
+    --essay-panel-bg:#f5f0e8;
+    --essay-panel-border:#cc785c;
+
+    --divider:#cc785c;
+
+    --danger:#c64545;
+    --accent2:#5db8a6;
+
+    --modal-bg-color:#faf9f5;
+    --modal-radius:12px;
+    --modal-shadow:0 12px 32px rgba(20,20,19,0.14);
+
+    --dropzone-border:#e6dfd8;
+    --dropzone-bg:#f5f0e8;
+    --dropzone-active-bg:#efe9de;
+    --dropzone-active-border:#cc785c;
+    --dropzone-icon-bg:#cc785c;
+    --dropzone-icon-text:#ffffff;
+
+    --entry-hover-shadow:0 4px 16px rgba(20,20,19,0.08);
+    --entry-hover-border:#e6dfd8;
+    --entry-used-border:#5db8a6;
+  }
+
+  *{box-sizing:border-box;}
+  html{background:var(--canvas);}
+  body{
+    margin:0;
+    background-color:var(--canvas);
+    background-image:var(--page-bg-image);
+    color:var(--body-text);
+    font-family:var(--body-font);
+    padding:3rem 1.25rem 4rem;
+    position:relative;
+    transition:background-color 0.2s ease, color 0.2s ease;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header{margin-bottom:2rem;text-align:center;position:relative;}
+  .eyebrow{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--eyebrow-text);
+    background:var(--eyebrow-bg);
+    padding:0.3rem 0.8rem;
+    border-radius:9999px;
+  }
+  h1{
+    font-family:var(--heading-font);
+    font-size:44px;
+    font-weight:var(--heading-weight);
+    text-transform:var(--heading-transform);
+    margin:0.7rem 0 0.6rem;
+    color:var(--ink);
+    letter-spacing:var(--heading-tracking);
+    line-height:1.08;
+  }
+  .sub{
+    font-family:var(--body-font);
+    font-size:16px;
+    color:var(--muted);
+    font-weight:400;
+    max-width:440px;
+    margin:0 auto;
+    line-height:1.5;
+  }
+  .header-rule{
+    height:3px;
+    width:64px;
+    margin:1.4rem auto 0;
+    border-radius:9999px;
+    background:var(--divider);
+  }
+  .rule{
+    border:none;
+    border-top:1px solid var(--border-1);
+    margin:2.2rem 0;
+  }
+  .card{
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    border-radius:var(--card-radius);
+    padding:1.9rem 1.9rem 2rem;
+    box-shadow:var(--card-shadow);
+  }
+  label{
+    display:block;
+    font-family:var(--body-font);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:1.2rem 0 0.45rem;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=password], input[type=url], textarea, select{
+    width:100%;
+    font-family:var(--body-font);
+    font-size:15px;
+    color:var(--ink);
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:var(--input-radius);
+    padding:0.75rem 0.9rem;
+    transition:border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  input::placeholder, textarea::placeholder{color:var(--muted);opacity:0.8;}
+  input:disabled{opacity:0.45;cursor:not-allowed;}
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23a7abd6' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 0.9rem center;
+    background-size:11px;
+    padding-right:2.3rem;
+  }
+  select option{background:var(--surface-1);color:var(--ink);}
+  input:hover, textarea:hover, select:hover{ border-color:var(--input-focus-border); }
+  input:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--input-focus-border);
+    box-shadow:0 0 0 3px var(--input-focus-ring);
+  }
+  textarea{min-height:112px;resize:vertical;line-height:1.55;font-family:var(--body-font);}
+  .row{display:flex;gap:0.85rem;}
+  .row > div{flex:1;}
+  .check-row{
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    margin-top:1.1rem;
+  }
+  .check-row input{width:auto;}
+  .check-row label{
+    margin:0;
+    text-transform:none;
+    font-size:13.5px;
+    font-weight:400;
+    letter-spacing:0;
+    color:var(--muted);
+    font-family:var(--body-font);
+  }
+  button{
+    font-family:var(--body-font);
+    font-size:13.5px;
+    font-weight:var(--btn-weight);
+    letter-spacing:var(--btn-tracking);
+    text-transform:var(--btn-transform);
+    background:var(--btn-bg);
+    color:var(--btn-text);
+    border:none;
+    border-radius:var(--btn-radius);
+    padding:0.95rem 1.3rem;
+    margin-top:1.6rem;
+    cursor:pointer;
+    width:100%;
+    transition:background-color 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  }
+  button:hover{background:var(--btn-active-bg);}
+  button:active{transform:translateY(1px);}
+  button:disabled{opacity:0.5;cursor:default;box-shadow:none;}
+  button:focus-visible{outline:2px solid var(--link-color);outline-offset:2px;}
+  .hint{
+    font-family:var(--body-font);
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:0.6rem;
+  }
+  .status{
+    font-family:var(--body-font);
+    font-size:13px;
+    color:var(--muted);
+    margin-top:0.7rem;
+    min-height:1em;
+  }
+  .tabs{
+    display:flex;
+    gap:0.5rem;
+    margin-bottom:1.4rem;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .tab{
+    font-family:var(--body-font);
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    padding:0.5rem 0.9rem;
+    border:1px solid var(--border-1);
+    border-radius:var(--tab-radius);
+    background:var(--tab-inactive-bg);
+    color:var(--tab-inactive-text);
+    cursor:pointer;
+    margin:0;
+    width:auto;
+    transition:background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .tab:hover{filter:brightness(1.1);}
+  .tab.active{
+    background:var(--tab-active-bg);
+    color:var(--tab-active-text);
+    border-color:var(--tab-active-bg);
+    box-shadow:var(--tab-active-shadow);
+  }
+  .spacer{flex:1;}
+  .export-btn{
+    font-family:var(--body-font);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    padding:0.5rem 0.9rem;
+    border:1px solid var(--link-color);
+    border-radius:6px;
+    background:transparent;
+    color:var(--link-color);
+    cursor:pointer;
+    margin:0;
+    width:auto;
+    box-shadow:none;
+    transition:background-color 0.15s ease;
+  }
+  .export-btn:hover{filter:none;box-shadow:none;opacity:0.75;}
+  .entry{
+    border:1px solid var(--border-1);
+    border-radius:16px;
+    background:var(--surface-2);
+    padding:1.2rem 1.35rem 1.3rem;
+    margin-bottom:1rem;
+    transition:box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+  }
+  .entry:hover{
+    box-shadow:var(--entry-hover-shadow);
+    border-color:var(--entry-hover-border);
+    transform:translateY(-1px);
+  }
+  .entry.used{ border-color:var(--entry-used-border); }
+  .entry-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:0.75rem;
+    margin-bottom:0.6rem;
+    flex-wrap:wrap;
+  }
+  .case-no{
+    font-family:var(--body-font);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    color:var(--case-no-color);
+  }
+  .meta{
+    font-family:var(--body-font);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .entry-text{
+    font-family:var(--body-font);
+    font-size:15.5px;
+    line-height:1.58;
+    white-space:pre-wrap;
+    color:var(--ink);
+  }
+  .cat-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--cat-badge-text);
+    background:var(--cat-badge-bg);
+    border-radius:9999px;
+    padding:0.2rem 0.55rem;
+    margin-bottom:0.65rem;
+  }
+  .used-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--used-badge-text);
+    background:var(--used-badge-bg);
+    border-radius:9999px;
+    padding:0.2rem 0.55rem;
+    margin-bottom:0.65rem;
+    margin-left:0.4rem;
+  }
+  .answered-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--answered-badge-text);
+    background:var(--answered-badge-bg);
+    border-radius:9999px;
+    padding:0.2rem 0.55rem;
+    margin-bottom:0.65rem;
+    margin-left:0.4rem;
+  }
+  .linked-note, .related-note{
+    font-family:var(--body-font);
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:0.5rem;
+  }
+  .linked-note button, .related-note button{
+    width:auto;
+    margin:0;
+    padding:0;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+    color:var(--link-color);
+    font-size:12.5px;
+    font-weight:600;
+    text-transform:none;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .linked-note button:hover, .related-note button:hover{filter:none;background:none;box-shadow:none;opacity:0.8;}
+  @keyframes jump-flash{
+    0%{box-shadow:0 0 0 3px var(--link-color);}
+    100%{box-shadow:0 0 0 0 transparent;}
+  }
+  .entry.jump-highlight{animation:jump-flash 1.4s ease-out;}
+  .essay-row{margin-top:0.9rem;}
+  a.essay-link, button.essay-link{
+    display:inline-flex;
+    align-items:center;
+    gap:0.35rem;
+    font-family:var(--body-font);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.01em;
+    text-transform:none;
+    color:var(--link-color);
+    background:transparent;
+    border:none;
+    padding:0;
+    margin:0;
+    width:auto;
+    text-decoration:none;
+    cursor:pointer;
+    transition:gap 0.15s ease;
+    box-shadow:none;
+  }
+  a.essay-link:hover, button.essay-link:hover{text-decoration:underline;gap:0.5rem;background:none;box-shadow:none;}
+  .essay-panel{
+    margin-top:0.8rem;
+    padding:1rem 1.1rem;
+    background:var(--essay-panel-bg);
+    border-left:3px solid var(--essay-panel-border);
+    border-radius:0 10px 10px 0;
+    font-family:var(--body-font);
+    font-size:14.5px;
+    line-height:1.6;
+    white-space:pre-wrap;
+    color:var(--ink);
+  }
+  .admin-row{
+    display:flex;
+    gap:0.5rem;
+    margin-top:0.9rem;
+    padding-top:0.8rem;
+    border-top:1px dashed var(--border-1);
+    flex-wrap:wrap;
+  }
+  .admin-row button{
+    margin-top:0;
+    width:auto;
+    padding:0.42rem 0.8rem;
+    font-size:11px;
+    font-weight:600;
+    text-transform:none;
+    background:transparent;
+    border:1px solid var(--border-1);
+    color:var(--ink);
+    box-shadow:none;
+    border-radius:6px;
+  }
+  .admin-row button:hover{filter:none;background:var(--surface-1);box-shadow:none;}
+  .admin-row button.danger{border-color:var(--danger);color:var(--danger);}
+  .admin-row button.accent{border-color:var(--accent2);color:var(--accent2);}
+  .bulk-bar{
+    display:flex;
+    align-items:center;
+    gap:0.9rem;
+    flex-wrap:wrap;
+    margin-bottom:1rem;
+    padding:0.6rem 0.9rem;
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    border-radius:10px;
+  }
+  .bulk-bar label{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    margin:0;
+    font-family:var(--body-font);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .bulk-bar label input{width:auto;margin:0;}
+  .bulk-bar button{
+    margin:0;
+    margin-left:auto;
+    width:auto;
+    padding:0.42rem 0.9rem;
+    font-size:11.5px;
+    font-weight:600;
+    text-transform:none;
+    background:transparent;
+    border:1px solid var(--danger);
+    color:var(--danger);
+    box-shadow:none;
+  }
+  .bulk-bar button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+  .entry-select{
+    display:inline-flex;
+    align-items:center;
+    margin-right:0.4rem;
+  }
+  .entry-select input{width:auto;margin:0;cursor:pointer;}
+  .empty{
+    font-family:var(--body-font);
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    padding:2.4rem 0;
+  }
+  .spinner{
+    display:inline-block;
+    width:13px;
+    height:13px;
+    border:2px solid var(--border-1);
+    border-top-color:var(--primary);
+    border-radius:50%;
+    vertical-align:-2px;
+    margin-right:0.45rem;
+    animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .notice{
+    font-family:var(--body-font);
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:0.5rem;
+  }
+  .footer-bar{
+    position:fixed;
+    right:1rem;
+    bottom:1rem;
+    display:flex;
+    gap:0.4rem;
+    align-items:center;
+    z-index:40;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(8px);
+    transition:opacity 0.2s ease, transform 0.2s ease;
+  }
+  .footer-bar.visible{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateY(0);
+  }
+  .lock, .edit-heading-btn{
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    border-radius:6px;
+    padding:0.42rem 0.75rem;
+    cursor:pointer;
+    width:auto;
+    margin:0;
+    box-shadow:none;
+    transition:background-color 0.15s ease;
+  }
+  .lock:hover, .edit-heading-btn:hover{filter:brightness(1.15);box-shadow:none;}
+  .lock.on{
+    color:var(--on-primary);
+    background:var(--btn-active-bg);
+    border-color:var(--btn-active-bg);
+  }
+  #theme-select{
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:var(--surface-1);
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23a7abd6' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 0.6rem center;
+    background-size:9px;
+    border:1px solid var(--border-1);
+    border-radius:6px;
+    padding:0.42rem 1.5rem 0.42rem 0.6rem;
+    width:auto;
+    cursor:pointer;
+  }
+  .modal-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:rgba(0,0,0,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2rem 1rem;
+    z-index:1000;
+    overflow-y:auto;
+  }
+  body.modal-lock{
+    overflow:hidden;
+  }
+  .modal{
+    background:var(--modal-bg-color);
+    border:1px solid var(--border-1);
+    border-radius:var(--modal-radius);
+    padding:1.7rem;
+    max-width:360px;
+    width:100%;
+    max-height:calc(100vh - 4rem);
+    overflow-y:auto;
+    box-shadow:var(--modal-shadow);
+  }
+  .modal h2{
+    font-family:var(--heading-font);
+    font-size:22px;
+    font-weight:var(--heading-weight);
+    text-transform:var(--heading-transform);
+    color:var(--ink);
+    margin:0 0 1.2rem;
+    letter-spacing:var(--heading-tracking);
+  }
+  .modal-actions{
+    display:flex;
+    gap:0.5rem;
+    margin-top:1rem;
+  }
+  .modal-actions button{margin-top:0;}
+  .modal-actions .cancel{
+    background:transparent;
+    border:1px solid var(--border-1);
+    color:var(--ink);
+    box-shadow:none;
+  }
+  .modal-actions .cancel:hover{filter:none;background:var(--surface-1);box-shadow:none;}
+  .modal-actions button.danger{
+    background:var(--danger);
+    color:#ffffff;
+  }
+  .modal-actions button.danger:hover{filter:brightness(1.1);}
+  .admin-note{
+    font-family:var(--body-font);
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:1rem;
+    line-height:1.5;
+  }
+  .dropzone{
+    border:2px dashed var(--dropzone-border);
+    border-radius:12px;
+    padding:1.7rem 1rem;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color 0.15s ease, background-color 0.15s ease;
+    background:var(--dropzone-bg);
+  }
+  .dropzone:hover, .dropzone.drag-over{
+    border-color:var(--dropzone-active-border);
+    background:var(--dropzone-active-bg);
+  }
+  .dropzone-icon{
+    width:36px;
+    height:36px;
+    margin:0 auto 0.7rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:var(--dropzone-icon-bg);
+    color:var(--dropzone-icon-text);
+    font-size:16px;
+    font-weight:700;
+  }
+  .dropzone-text{
+    font-family:var(--body-font);
+    font-size:14px;
+    color:var(--muted);
+  }
+  .dropzone-text strong{
+    color:var(--link-color);
+    font-weight:600;
+  }
+  .dropzone-sub{
+    font-family:var(--body-font);
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:0.35rem;
+    opacity:0.8;
+  }
+  .file-chip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.5rem;
+    background:var(--essay-panel-bg);
+    border:1px solid var(--dropzone-active-border);
+    border-radius:9999px;
+    padding:0.55rem 0.9rem;
+    font-family:var(--body-font);
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .file-chip button{
+    width:auto;
+    margin:0;
+    padding:0.1rem 0.5rem;
+    font-size:11px;
+    background:transparent;
+    border:none;
+    color:var(--link-color);
+    box-shadow:none;
+    text-transform:none;
+    font-weight:600;
+  }
+  .file-chip button:hover{background:none;box-shadow:none;filter:none;text-decoration:underline;}
+  .or-divider{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    margin:1.2rem 0;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .or-divider span.line{
+    height:1px;
+    flex:1;
+    background:var(--border-1);
+  }
+  @media (max-width:480px){
+    body{padding:2.2rem 1rem 4.5rem;}
+    h1{font-size:34px;}
+    .row{flex-direction:column;gap:0;}
+    .footer-bar{right:0.6rem;bottom:0.6rem;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 1.2rem);}
+    header{margin-bottom:1.5rem;}
+    .card{padding:1.5rem 1.4rem 1.6rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow" id="site-eyebrow">essay prompts, under review</span>
+    <h1 id="site-title">The Docket</h1>
+    <p class="sub" id="site-sub">File a question, critique, or objection to Christianity below. Everything submitted here is visible to the group and may become the subject of an essay.</p>
+    <div class="header-rule"></div>
+  </header>
+
+  <div id="modal-slot"></div>
+
+  <div class="card">
+    <label for="f-name">Your name</label>
+    <input type="text" id="f-name" placeholder="First name is fine">
+
+    <div class="check-row" style="margin-top:0.7rem;margin-bottom:0.9rem;">
+      <input type="checkbox" id="f-anon">
+      <label for="f-anon">Submit anonymously (your name won't be attached)</label>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="f-cat">Category</label>
+        <select id="f-cat">
+          <option value="Question">Question</option>
+          <option value="Objection">Objection</option>
+          <option value="Critique">Critique</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-topic">Topic (optional)</label>
+        <input type="text" id="f-topic" placeholder="e.g. suffering, resurrection">
+      </div>
+    </div>
+    <div class="hint" id="cat-hint"><strong>Question</strong>: seeking to understand, no counter-claim &middot; <strong>Objection</strong>: argues a claim is false &middot; <strong>Critique</strong>: grants it might be true, but questions its implications or practice</div>
+
+    <label for="f-text" id="f-text-label">The question, critique, or objection itself</label>
+    <textarea id="f-text" placeholder="Write as much or as little as you like."></textarea>
+
+    <div class="check-row">
+      <input type="checkbox" id="f-bulk">
+      <label for="f-bulk">List several at once (one per line, filed as separate entries)</label>
+    </div>
+
+    <button id="f-submit">File this</button>
+    <div class="hint">Tip: press Cmd/Ctrl + Enter to file and keep going without touching the mouse.</div>
+    <div class="status" id="f-status"></div>
+  </div>
+
+  <hr class="rule">
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-filter="All">All</button>
+    <button class="tab" data-filter="Question">Questions</button>
+    <button class="tab" data-filter="Objection">Objections</button>
+    <button class="tab" data-filter="Critique">Critiques</button>
+    <div class="spacer"></div>
+    <button class="export-btn" id="export-json" style="display:none;">Export JSON</button>
+    <button class="export-btn" id="export-csv" style="display:none;">Export CSV</button>
+    <button class="export-btn" id="export-backup" style="display:none;">Export Backup</button>
+    <button class="export-btn" id="import-backup" style="display:none;">Import Backup</button>
+  </div>
+
+  <div class="tabs" id="response-tabs">
+    <button class="tab active" data-response-filter="All">All statuses</button>
+    <button class="tab" data-response-filter="Answered">Answered</button>
+    <button class="tab" data-response-filter="Unanswered">Unanswered</button>
+  </div>
+
+  <div id="list"></div>
+  <div class="notice">Visible to everyone who has this link.</div>
+
+</div>
+
+<div class="footer-bar">
+  <select id="theme-select">
+    <option value="claude">Warm</option>
+    <option value="discord">Dark</option>
+  </select>
+  <button class="edit-heading-btn" id="edit-heading-btn" style="display:none;">Edit text</button>
+  <button class="lock" id="lock-btn">Manage</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script>
+// ---- Firebase-backed replacement for the artifact's window.storage API ----
+// Anyone can use the page with no Claude account: visitors are signed in
+// anonymously and silently, and every window.storage.get/set/delete/list call
+// below is rerouted to Firestore. Nothing else in this file needs to change.
+var firebaseConfig = {
+  apiKey: "AIzaSyArEKxtw0MiI2QQwprM8biA_VYdhFo-C5k",
+  authDomain: "the-docket-4ec04.firebaseapp.com",
+  projectId: "the-docket-4ec04",
+  storageBucket: "the-docket-4ec04.firebasestorage.app",
+  messagingSenderId: "91221883921",
+  appId: "1:91221883921:web:eef17d38a16009e66085b0"
+};
+firebase.initializeApp(firebaseConfig);
+var fbAuth = firebase.auth();
+var fbDb = firebase.firestore();
+
+var authReadyPromise = new Promise(function(resolve, reject){
+  var unsub = fbAuth.onAuthStateChanged(function(user){
+    if(user){
+      unsub();
+      resolve(user.uid);
+    }
+  }, reject);
+});
+fbAuth.signInAnonymously().catch(function(e){
+  console.error("Anonymous sign-in failed:", e);
+});
+
+function fbRefFor(key, shared, uid){
+  return shared
+    ? fbDb.collection("docket_storage").doc(key)
+    : fbDb.collection("docket_users").doc(uid).collection("data").doc(key);
+}
+
+window.storage = {
+  get: async function(key, shared){
+    const uid = await authReadyPromise;
+    const snap = await fbRefFor(key, shared, uid).get();
+    if(!snap.exists) throw new Error("Key not found: " + key);
+    const data = snap.data();
+    return { key: key, value: data.value, shared: !!shared };
+  },
+  set: async function(key, value, shared){
+    const uid = await authReadyPromise;
+    await fbRefFor(key, shared, uid).set({ value: value, updatedAt: Date.now() });
+    return { key: key, value: value, shared: !!shared };
+  },
+  delete: async function(key, shared){
+    const uid = await authReadyPromise;
+    await fbRefFor(key, shared, uid).delete();
+    return { key: key, deleted: true, shared: !!shared };
+  },
+  list: async function(prefix, shared){
+    const uid = await authReadyPromise;
+    const col = shared
+      ? fbDb.collection("docket_storage")
+      : fbDb.collection("docket_users").doc(uid).collection("data");
+    let q = col;
+    if(prefix){
+      q = col.where(firebase.firestore.FieldPath.documentId(), ">=", prefix)
+              .where(firebase.firestore.FieldPath.documentId(), "<", prefix + "\uf8ff");
+    }
+    const snap = await q.get();
+    const keys = [];
+    snap.forEach(function(d){ keys.push(d.id); });
+    return { keys: keys };
+  }
+};
+</script>
+
+<script>
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "docket";
+const SETTINGS_KEY = "settings:site";
+const THEME_KEY = "prefs:theme";
+
+const DEFAULT_SETTINGS = {
+  eyebrow: "essay prompts, under review",
+  title: "The Docket",
+  sub: "File a question, critique, or objection to Christianity below. Everything submitted here is visible to the group and may become the subject of an essay."
+};
+
+let allEntries = [];
+let filter = "All";
+let responseFilter = "All";
+let isAdmin = false;
+let siteSettings = Object.assign({}, DEFAULT_SETTINGS);
+let expandedEssays = {};
+let selectedKeys = new Set();
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+
+function openModal(html){
+  const slot = document.getElementById("modal-slot");
+  slot.innerHTML = html;
+  document.body.classList.add("modal-lock");
+  const overlay = slot.querySelector(".modal-overlay");
+  if(overlay){
+    overlay.addEventListener("mousedown", function(ev){
+      if(ev.target === overlay) closeModal();
+    });
+  }
+}
+
+function closeModal(){
+  document.getElementById("modal-slot").innerHTML = "";
+  document.body.classList.remove("modal-lock");
+}
+
+function formatDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+}
+
+function csvEscape(s){
+  const str = String(s == null ? "" : s);
+  if(/[",\n]/.test(str)){
+    return '"' + str.replace(/"/g,'""') + '"';
+  }
+  return str;
+}
+
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  const sel = document.getElementById("theme-select");
+  if(sel) sel.value = theme;
+}
+
+async function loadTheme(){
+  try{
+    const res = await window.storage.get(THEME_KEY, false);
+    if(res && res.value){
+      applyTheme(res.value);
+    }
+  }catch(e){}
+}
+
+document.getElementById("theme-select").addEventListener("change", async function(ev){
+  const theme = ev.target.value;
+  applyTheme(theme);
+  try{ await window.storage.set(THEME_KEY, theme, false); }catch(e){}
+});
+
+function applySiteSettings(){
+  document.getElementById("site-eyebrow").textContent = siteSettings.eyebrow;
+  document.getElementById("site-title").textContent = siteSettings.title;
+  document.getElementById("site-sub").textContent = siteSettings.sub;
+}
+
+async function loadSiteSettings(){
+  try{
+    const res = await window.storage.get(SETTINGS_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      siteSettings = Object.assign({}, DEFAULT_SETTINGS, parsed);
+    }
+  }catch(e){}
+  applySiteSettings();
+}
+
+function countFor(cat){
+  if(cat === "All") return allEntries.length;
+  return allEntries.filter(function(e){ return e.category === cat; }).length;
+}
+
+function normalizeUrl(u){
+  if(!u) return "";
+  if(!/^https?:\/\//i.test(u)) return "https://" + u;
+  return u;
+}
+
+function resolveEssay(entry){
+  if(entry.essayUrl || entry.essayText){
+    return { url: entry.essayUrl, text: entry.essayText, viaKey: null };
+  }
+  if(entry.linkedTo){
+    const target = allEntries.find(function(t){ return t.key === entry.linkedTo; });
+    if(target && (target.essayUrl || target.essayText)){
+      return { url: target.essayUrl, text: target.essayText, viaKey: target.key, viaCaseNo: target.caseNo };
+    }
+  }
+  return { url:"", text:"", viaKey:null };
+}
+
+function render(){
+  const list = document.getElementById("list");
+  const liveKeys = new Set(allEntries.map(function(e){ return e.key; }));
+  selectedKeys.forEach(function(k){ if(!liveKeys.has(k)) selectedKeys.delete(k); });
+  document.querySelectorAll("#tabs .tab").forEach(function(t){
+    const cat = t.dataset.filter;
+    const base = cat === "All" ? "All" : (cat + "s");
+    t.textContent = base + " (" + countFor(cat) + ")";
+  });
+
+  const answeredCount = allEntries.filter(function(e){ const r = resolveEssay(e); return !!(r.url || r.text); }).length;
+  document.querySelectorAll("#response-tabs .tab").forEach(function(t){
+    const rf = t.dataset.responseFilter;
+    if(rf === "All") t.textContent = "All statuses (" + allEntries.length + ")";
+    else if(rf === "Answered") t.textContent = "Answered (" + answeredCount + ")";
+    else t.textContent = "Unanswered (" + (allEntries.length - answeredCount) + ")";
+  });
+
+  let filtered = filter === "All" ? allEntries : allEntries.filter(function(e){ return e.category === filter; });
+  if(responseFilter === "Answered"){
+    filtered = filtered.filter(function(e){ const r = resolveEssay(e); return !!(r.url || r.text); });
+  }else if(responseFilter === "Unanswered"){
+    filtered = filtered.filter(function(e){ const r = resolveEssay(e); return !(r.url || r.text); });
+  }
+
+  document.getElementById("export-json").style.display = isAdmin ? "inline-block" : "none";
+  document.getElementById("export-csv").style.display = isAdmin ? "inline-block" : "none";
+  document.getElementById("export-backup").style.display = isAdmin ? "inline-block" : "none";
+  document.getElementById("import-backup").style.display = isAdmin ? "inline-block" : "none";
+  document.getElementById("edit-heading-btn").style.display = isAdmin ? "inline-block" : "none";
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="empty">No entries match these filters.</div>';
+    return;
+  }
+
+  const bulkBar = isAdmin ? (
+    '<div class="bulk-bar" id="bulk-bar">' +
+      '<label><input type="checkbox" id="select-all-visible"> Select all visible (' + filtered.length + ')</label>' +
+      '<button class="danger" id="bulk-delete-btn" disabled>Delete selected (' + selectedKeys.size + ')</button>' +
+    '</div>'
+  ) : "";
+
+  list.innerHTML = bulkBar + filtered.map(function(e){
+    const num = String(e.caseNo).padStart(4,"0");
+    const hasOwnEssay = !!(e.essayUrl || e.essayText);
+    const resolved = resolveEssay(e);
+    const isAnswered = !!(resolved.url || resolved.text);
+
+    const selectBox = isAdmin ? (
+      '<label class="entry-select"><input type="checkbox" class="select-entry" data-key="' + escapeHtml(e.key) + '"' + (selectedKeys.has(e.key) ? " checked" : "") + '></label>'
+    ) : "";
+
+    let essayRow = "";
+    if(resolved.url){
+      essayRow = '<div class="essay-row"><a class="essay-link" href="' + escapeHtml(normalizeUrl(resolved.url)) + '" target="_blank" rel="noopener noreferrer">Read essay <span aria-hidden="true">&rarr;</span></a></div>';
+    }else if(resolved.text){
+      const expanded = !!expandedEssays[e.key];
+      essayRow = '<div class="essay-row"><button class="essay-link" data-action="toggle-essay" data-key="' + escapeHtml(e.key) + '">' + (expanded ? "Hide essay" : "Read essay") + ' <span aria-hidden="true">' + (expanded ? "&darr;" : "&rarr;") + '</span></button>' +
+        (expanded ? '<div class="essay-panel">' + escapeHtml(resolved.text) + '</div>' : "") +
+        '</div>';
+    }
+
+    let linkedNote = "";
+    if(e.linkedTo){
+      const target = allEntries.find(function(t){ return t.key === e.linkedTo; });
+      if(target){
+        linkedNote = '<div class="linked-note">Same as <button data-action="jump-to-entry" data-target-key="' + escapeHtml(target.key) + '">Case No. ' + String(target.caseNo).padStart(4,"0") + '</button></div>';
+      }
+    }
+
+    let relatedNote = "";
+    const related = allEntries.filter(function(o){ return o.linkedTo === e.key; });
+    if(related.length > 0){
+      relatedNote = '<div class="related-note">Also raised in: ' + related.map(function(r){
+        return '<button data-action="jump-to-entry" data-target-key="' + escapeHtml(r.key) + '">Case No. ' + String(r.caseNo).padStart(4,"0") + '</button>';
+      }).join(", ") + '</div>';
+    }
+
+    const adminControls = isAdmin ? (
+      '<div class="admin-row">' +
+      '<button data-action="toggle-used" data-key="' + escapeHtml(e.key) + '">' + (e.used ? "Mark unused" : "Mark used") + '</button>' +
+      '<button class="accent" data-action="edit-essay" data-key="' + escapeHtml(e.key) + '">' + (hasOwnEssay ? "Edit essay link" : "Attach essay") + '</button>' +
+      '<button class="accent" data-action="link-entry" data-key="' + escapeHtml(e.key) + '">' + (e.linkedTo ? "Change link" : "Link to entry") + '</button>' +
+      '<button class="danger" data-action="delete" data-key="' + escapeHtml(e.key) + '">Delete</button>' +
+      '</div>'
+    ) : "";
+
+    return '<div class="entry' + (e.used ? " used" : "") + '" data-entry-key="' + escapeHtml(e.key) + '">' +
+      '<div class="entry-head">' +
+        selectBox +
+        '<span class="case-no">Case No. ' + num + '</span>' +
+        '<span class="meta">' + escapeHtml(e.name || "Anonymous") + ' &middot; ' + formatDate(e.timestamp) + '</span>' +
+      '</div>' +
+      '<div class="cat-tag">' + escapeHtml(e.category) + (e.topic ? " &middot; " + escapeHtml(e.topic) : "") + '</div>' +
+      (e.used ? '<span class="used-tag">Used</span>' : "") +
+      (isAnswered ? '<span class="answered-tag">Answered</span>' : "") +
+      '<div class="entry-text">' + escapeHtml(e.text) + '</div>' +
+      essayRow +
+      linkedNote +
+      relatedNote +
+      adminControls +
+    '</div>';
+  }).join("");
+
+  if(isAdmin){
+    const selectAll = document.getElementById("select-all-visible");
+    const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+    const visibleKeys = filtered.map(function(e){ return e.key; });
+    if(selectAll){
+      selectAll.checked = visibleKeys.length > 0 && visibleKeys.every(function(k){ return selectedKeys.has(k); });
+      selectAll.addEventListener("change", function(){
+        if(selectAll.checked){
+          visibleKeys.forEach(function(k){ selectedKeys.add(k); });
+        }else{
+          visibleKeys.forEach(function(k){ selectedKeys.delete(k); });
+        }
+        render();
+      });
+    }
+    if(bulkDeleteBtn){
+      bulkDeleteBtn.disabled = selectedKeys.size === 0;
+      bulkDeleteBtn.addEventListener("click", showBulkDeleteModal);
+    }
+    document.querySelectorAll(".select-entry").forEach(function(cb){
+      cb.addEventListener("change", function(){
+        const k = cb.dataset.key;
+        if(cb.checked) selectedKeys.add(k); else selectedKeys.delete(k);
+        render();
+      });
+    });
+  }
+
+  if(typeof updateFooterBarVisibility === "function") updateFooterBarVisibility();
+}
+
+async function loadEntries(){
+  const list = document.getElementById("list");
+  list.innerHTML = '<div class="empty"><span class="spinner" aria-hidden="true"></span>Loading the docket&hellip;</div>';
+  try{
+    const keysResult = await window.storage.list("submission:", true);
+    const keys = keysResult && keysResult.keys ? keysResult.keys : [];
+    const results = await Promise.all(keys.map(async function(key){
+      try{
+        const res = await window.storage.get(key, true);
+        if(res && res.value){
+          const parsed = JSON.parse(res.value);
+          parsed.key = key;
+          return parsed;
+        }
+      }catch(e){}
+      return null;
+    }));
+    const entries = results.filter(Boolean);
+    entries.sort(function(a,b){ return a.timestamp - b.timestamp; });
+    entries.forEach(function(e,i){ e.caseNo = i+1; });
+    entries.reverse();
+    allEntries = entries;
+    render();
+  }catch(e){
+    list.innerHTML = '<div class="empty">Could not load the docket. Try refreshing.</div>';
+  }
+}
+
+async function fileOne(name, category, topic, text){
+  const entry = { name:name, category:category, topic:topic, text:text, timestamp: Date.now(), used:false, essayText:"", essayUrl:"", essayFileName:"", linkedTo:"" };
+  const key = "submission:" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+  const result = await window.storage.set(key, JSON.stringify(entry), true);
+  if(!result) throw new Error("Storage returned no result");
+}
+
+async function handleSubmit(){
+  const anon = document.getElementById("f-anon").checked;
+  const name = anon ? "" : document.getElementById("f-name").value.trim();
+  const category = document.getElementById("f-cat").value;
+  const topic = document.getElementById("f-topic").value.trim();
+  const rawText = document.getElementById("f-text").value;
+  const bulk = document.getElementById("f-bulk").checked;
+  const status = document.getElementById("f-status");
+  const btn = document.getElementById("f-submit");
+
+  const items = bulk
+    ? rawText.split("\n").map(function(s){ return s.trim(); }).filter(Boolean)
+    : [rawText.trim()].filter(Boolean);
+
+  if(items.length === 0){
+    status.textContent = "Write something before filing.";
+    return;
+  }
+
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Filing\u2026';
+
+  try{
+    for(const item of items){
+      await fileOne(name, category, topic, item);
+    }
+    document.getElementById("f-text").value = "";
+    status.textContent = items.length > 1
+      ? ("Filed " + items.length + " entries. Thank you.")
+      : "Filed. Thank you.";
+    await loadEntries();
+    document.getElementById("f-text").focus();
+  }catch(e){
+    status.textContent = "Could not file that. Try again.";
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+document.getElementById("f-anon").addEventListener("change", function(ev){
+  const nameInput = document.getElementById("f-name");
+  if(ev.target.checked){
+    nameInput.disabled = true;
+    nameInput.dataset.prevValue = nameInput.value;
+    nameInput.value = "";
+    nameInput.placeholder = "Hidden — submitting anonymously";
+  }else{
+    nameInput.disabled = false;
+    nameInput.value = nameInput.dataset.prevValue || "";
+    nameInput.placeholder = "First name is fine";
+  }
+});
+
+document.getElementById("f-bulk").addEventListener("change", function(ev){
+  const label = document.getElementById("f-text-label");
+  const textarea = document.getElementById("f-text");
+  if(ev.target.checked){
+    label.textContent = "One item per line";
+    textarea.placeholder = "Paste or type each question, critique, or objection on its own line.";
+  }else{
+    label.textContent = "The question, critique, or objection itself";
+    textarea.placeholder = "Write as much or as little as you like.";
+  }
+});
+
+document.getElementById("f-submit").addEventListener("click", handleSubmit);
+
+document.getElementById("f-text").addEventListener("keydown", function(ev){
+  if((ev.metaKey || ev.ctrlKey) && ev.key === "Enter"){
+    ev.preventDefault();
+    handleSubmit();
+  }
+});
+
+document.getElementById("tabs").addEventListener("click", function(ev){
+  const btn = ev.target.closest(".tab");
+  if(btn){
+    document.querySelectorAll("#tabs .tab").forEach(function(t){ t.classList.remove("active"); });
+    btn.classList.add("active");
+    filter = btn.dataset.filter;
+    render();
+  }
+});
+
+document.getElementById("response-tabs").addEventListener("click", function(ev){
+  const btn = ev.target.closest(".tab");
+  if(btn){
+    document.querySelectorAll("#response-tabs .tab").forEach(function(t){ t.classList.remove("active"); });
+    btn.classList.add("active");
+    responseFilter = btn.dataset.responseFilter;
+    render();
+  }
+});
+
+document.getElementById("export-json").addEventListener("click", function(){
+  const data = allEntries.map(function(e){
+    const linkedEntry = e.linkedTo ? allEntries.find(function(t){ return t.key === e.linkedTo; }) : null;
+    return { caseNo:e.caseNo, name:e.name, category:e.category, topic:e.topic, text:e.text, used:e.used, essayText:e.essayText, essayUrl:e.essayUrl, linkedToCaseNo: linkedEntry ? linkedEntry.caseNo : "", timestamp:e.timestamp };
+  });
+  downloadBlob(JSON.stringify(data, null, 2), "the-docket-export.json", "application/json");
+});
+
+document.getElementById("export-csv").addEventListener("click", function(){
+  const header = ["caseNo","name","category","topic","text","used","essayUrl","linkedToCaseNo","timestamp"];
+  const rows = allEntries.map(function(e){
+    const linkedEntry = e.linkedTo ? allEntries.find(function(t){ return t.key === e.linkedTo; }) : null;
+    return [e.caseNo, e.name, e.category, e.topic, e.text, e.used, e.essayUrl, linkedEntry ? linkedEntry.caseNo : "", new Date(e.timestamp).toISOString()];
+  });
+  const csv = [header.join(",")].concat(rows.map(function(r){ return r.map(csvEscape).join(","); })).join("\n");
+  downloadBlob(csv, "the-docket-export.csv", "text/csv");
+});
+
+document.getElementById("export-backup").addEventListener("click", function(){
+  const backup = {
+    type: "the-docket-backup",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: siteSettings,
+    entries: allEntries.map(function(e){
+      return {
+        key: e.key, name: e.name, category: e.category, topic: e.topic, text: e.text,
+        timestamp: e.timestamp, used: e.used, essayText: e.essayText || "", essayUrl: e.essayUrl || "",
+        essayFileName: e.essayFileName || "", linkedTo: e.linkedTo || ""
+      };
+    })
+  };
+  downloadBlob(JSON.stringify(backup, null, 2), "the-docket-backup-" + new Date().toISOString().slice(0,10) + ".json", "application/json");
+});
+
+document.getElementById("import-backup").addEventListener("click", showImportModal);
+
+document.getElementById("list").addEventListener("click", async function(ev){
+  const btn = ev.target.closest("button[data-action]");
+  if(!btn) return;
+  const key = btn.dataset.key;
+  const action = btn.dataset.action;
+
+  if(action === "toggle-essay"){
+    expandedEssays[key] = !expandedEssays[key];
+    render();
+    return;
+  }
+
+  if(action === "jump-to-entry"){
+    const targetKey = btn.dataset.targetKey;
+    const targetEl = document.querySelector('.entry[data-entry-key="' + CSS.escape(targetKey) + '"]');
+    if(targetEl){
+      targetEl.scrollIntoView({behavior:"smooth", block:"center"});
+      targetEl.classList.add("jump-highlight");
+      setTimeout(function(){ targetEl.classList.remove("jump-highlight"); }, 1400);
+    }
+    return;
+  }
+
+  if(!isAdmin) return;
+  const entry = allEntries.find(function(e){ return e.key === key; });
+  if(!entry) return;
+
+  if(action === "edit-essay"){
+    showEssayModal(entry);
+    return;
+  }
+
+  if(action === "link-entry"){
+    showLinkModal(entry);
+    return;
+  }
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>' + (action === "delete" ? "Deleting\u2026" : "Saving\u2026");
+  try{
+    if(action === "delete"){
+      await window.storage.delete(key, true);
+    }else if(action === "toggle-used"){
+      entry.used = !entry.used;
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:entry.linkedTo||"" };
+      await window.storage.set(key, JSON.stringify(toSave), true);
+    }
+    await loadEntries();
+  }catch(e){
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
+function showBulkDeleteModal(){
+  const count = selectedKeys.size;
+  if(count === 0) return;
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Delete ' + count + ' entr' + (count === 1 ? "y" : "ies") + '?</h2>' +
+      '<div class="hint">This permanently removes ' + (count === 1 ? "this entry" : "these entries") + ' from the docket. This cannot be undone.</div>' +
+      '<div class="status" id="bulk-delete-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="bulk-delete-cancel">Cancel</button>' +
+        '<button class="danger" id="bulk-delete-confirm">Delete</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+  document.getElementById("bulk-delete-cancel").addEventListener("click", closeModal);
+  document.getElementById("bulk-delete-confirm").addEventListener("click", async function(){
+    const confirmBtn = document.getElementById("bulk-delete-confirm");
+    const status = document.getElementById("bulk-delete-status");
+    confirmBtn.disabled = true;
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Deleting\u2026';
+    try{
+      const keys = Array.from(selectedKeys);
+      await Promise.all(keys.map(function(k){
+        return window.storage.delete(k, true).catch(function(){});
+      }));
+      selectedKeys.clear();
+      closeModal();
+      await loadEntries();
+    }catch(e){
+      status.textContent = "Some entries could not be deleted. Try again.";
+      confirmBtn.disabled = false;
+    }
+  });
+}
+
+function showEssayModal(entry){
+  const existingFileName = entry.essayFileName || "";
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Attach essay response</h2>' +
+      '<div class="dropzone" id="essay-dropzone" tabindex="0" role="button" aria-label="Upload a text file">' +
+        '<div class="dropzone-icon" aria-hidden="true">&uarr;</div>' +
+        '<div class="dropzone-text" id="dropzone-label">Drop a file here, or <strong>browse</strong></div>' +
+        '<div class="dropzone-sub">.txt or .md &middot; content is read in as text</div>' +
+      '</div>' +
+      '<input type="file" id="essay-file-input" accept=".txt,.md,text/plain,text/markdown" style="display:none;">' +
+      '<div id="file-chip-slot" style="margin-top:0.8rem;"></div>' +
+      '<div class="or-divider"><span class="line"></span><span>or</span><span class="line"></span></div>' +
+      '<label for="essay-url">Paste a link instead (Google Doc, blog post, etc.)</label>' +
+      '<input type="url" id="essay-url" placeholder="https://..." value="' + escapeHtml(entry.essayUrl || "") + '">' +
+      '<label for="essay-text">Or type/paste the essay text directly</label>' +
+      '<textarea id="essay-text" style="min-height:120px;" placeholder="Filled in automatically if you upload a file above">' + escapeHtml(entry.essayText || "") + '</textarea>' +
+      '<div class="status" id="essay-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="essay-cancel">Cancel</button>' +
+        '<button id="essay-save">Save</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+
+  let currentFileName = existingFileName;
+
+  function renderFileChip(){
+    const chipSlot = document.getElementById("file-chip-slot");
+    if(currentFileName){
+      chipSlot.innerHTML = '<div class="file-chip"><span>' + escapeHtml(currentFileName) + '</span><button type="button" id="file-chip-remove">Remove</button></div>';
+      document.getElementById("file-chip-remove").addEventListener("click", function(){
+        currentFileName = "";
+        document.getElementById("essay-file-input").value = "";
+        renderFileChip();
+      });
+    }else{
+      chipSlot.innerHTML = "";
+    }
+  }
+  renderFileChip();
+
+  const dropzone = document.getElementById("essay-dropzone");
+  const fileInput = document.getElementById("essay-file-input");
+
+  function readFile(file){
+    if(!file) return;
+    const label = document.getElementById("dropzone-label");
+    label.textContent = "Reading " + file.name + "\u2026";
+    const reader = new FileReader();
+    reader.onload = function(){
+      document.getElementById("essay-text").value = String(reader.result || "");
+      currentFileName = file.name;
+      label.innerHTML = 'Drop a file here, or <strong>browse</strong>';
+      renderFileChip();
+    };
+    reader.onerror = function(){
+      label.innerHTML = 'Drop a file here, or <strong>browse</strong>';
+      document.getElementById("essay-status").textContent = "Could not read that file.";
+    };
+    reader.readAsText(file);
+  }
+
+  dropzone.addEventListener("click", function(){ fileInput.click(); });
+  dropzone.addEventListener("keydown", function(ev){
+    if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); fileInput.click(); }
+  });
+  dropzone.addEventListener("dragover", function(ev){ ev.preventDefault(); dropzone.classList.add("drag-over"); });
+  dropzone.addEventListener("dragleave", function(){ dropzone.classList.remove("drag-over"); });
+  dropzone.addEventListener("drop", function(ev){
+    ev.preventDefault();
+    dropzone.classList.remove("drag-over");
+    if(ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0]){
+      readFile(ev.dataTransfer.files[0]);
+    }
+  });
+  fileInput.addEventListener("change", function(){
+    if(fileInput.files && fileInput.files[0]){
+      readFile(fileInput.files[0]);
+    }
+  });
+
+  document.getElementById("essay-cancel").addEventListener("click", closeModal);
+  document.getElementById("essay-save").addEventListener("click", async function(){
+    const url = document.getElementById("essay-url").value.trim();
+    const text = document.getElementById("essay-text").value.trim();
+    const status = document.getElementById("essay-status");
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
+    try{
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayUrl:url, essayText:text, essayFileName:currentFileName, linkedTo:entry.linkedTo||"" };
+      const result = await window.storage.set(entry.key, JSON.stringify(toSave), true);
+      if(!result) throw new Error("no result");
+      closeModal();
+      await loadEntries();
+    }catch(e){
+      status.textContent = "Could not save. Try again.";
+    }
+  });
+}
+
+function showLinkModal(entry){
+  const candidates = allEntries.filter(function(o){ return o.key !== entry.key; });
+
+  const options = ['<option value="">&mdash; No link &mdash;</option>'].concat(
+    candidates.map(function(o){
+      const snippet = o.text.length > 60 ? o.text.slice(0,60) + "\u2026" : o.text;
+      const num = String(o.caseNo).padStart(4,"0");
+      const selected = (entry.linkedTo === o.key) ? " selected" : "";
+      return '<option value="' + escapeHtml(o.key) + '"' + selected + '>Case No. ' + num + ' \u2014 ' + escapeHtml(snippet) + '</option>';
+    })
+  ).join("");
+
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Link to another entry</h2>' +
+      '<label for="link-target">This entry is the same as, or should point to:</label>' +
+      '<select id="link-target">' + options + '</select>' +
+      '<div class="hint">Linking shows a &quot;Same as Case No. X&quot; note here, and if that entry already has an essay attached, this one will show it too.</div>' +
+      '<div class="status" id="link-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="link-cancel">Cancel</button>' +
+        '<button id="link-save">Save</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+
+  document.getElementById("link-cancel").addEventListener("click", closeModal);
+  document.getElementById("link-save").addEventListener("click", async function(){
+    const target = document.getElementById("link-target").value;
+    const status = document.getElementById("link-status");
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
+    try{
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:target };
+      const result = await window.storage.set(entry.key, JSON.stringify(toSave), true);
+      if(!result) throw new Error("no result");
+      closeModal();
+      await loadEntries();
+    }catch(e){
+      status.textContent = "Could not save. Try again.";
+    }
+  });
+}
+
+function showImportModal(){
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Import backup</h2>' +
+      '<div class="hint">Restore entries from a file created with &quot;Export Backup&quot;. Use this after upgrading the artifact to bring your old data across.</div>' +
+      '<div class="dropzone" id="import-dropzone" tabindex="0" role="button" aria-label="Upload a backup JSON file">' +
+        '<div class="dropzone-icon" aria-hidden="true">&uarr;</div>' +
+        '<div class="dropzone-text" id="import-dropzone-label">Drop a backup .json file here, or <strong>browse</strong></div>' +
+        '<div class="dropzone-sub">Only files exported from The Docket are supported</div>' +
+      '</div>' +
+      '<input type="file" id="import-file-input" accept=".json,application/json" style="display:none;">' +
+      '<div id="import-file-chip-slot" style="margin-top:0.8rem;"></div>' +
+      '<div id="import-preview"></div>' +
+      '<label style="margin-top:0.8rem;"><input type="radio" name="import-mode" value="merge" checked> Merge &mdash; add these entries alongside what&#39;s already here (skips exact duplicates)</label>' +
+      '<label><input type="radio" name="import-mode" value="replace"> Replace &mdash; delete all current entries first, then import</label>' +
+      '<div class="status" id="import-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="import-cancel">Cancel</button>' +
+        '<button id="import-confirm" disabled>Import</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+
+  let parsedBackup = null;
+
+  function renderFileChip(name){
+    const chipSlot = document.getElementById("import-file-chip-slot");
+    if(name){
+      chipSlot.innerHTML = '<div class="file-chip"><span>' + escapeHtml(name) + '</span><button type="button" id="import-file-chip-remove">Remove</button></div>';
+      document.getElementById("import-file-chip-remove").addEventListener("click", function(){
+        parsedBackup = null;
+        document.getElementById("import-file-input").value = "";
+        document.getElementById("import-preview").innerHTML = "";
+        document.getElementById("import-confirm").disabled = true;
+        renderFileChip("");
+      });
+    }else{
+      chipSlot.innerHTML = "";
+    }
+  }
+
+  const dropzone = document.getElementById("import-dropzone");
+  const fileInput = document.getElementById("import-file-input");
+  const label = document.getElementById("import-dropzone-label");
+  const preview = document.getElementById("import-preview");
+  const status = document.getElementById("import-status");
+  const confirmBtn = document.getElementById("import-confirm");
+
+  function readFile(file){
+    if(!file) return;
+    label.textContent = "Reading " + file.name + "\u2026";
+    status.textContent = "";
+    const reader = new FileReader();
+    reader.onload = function(){
+      label.innerHTML = 'Drop a backup .json file here, or <strong>browse</strong>';
+      try{
+        const data = JSON.parse(String(reader.result || ""));
+        if(!data || !Array.isArray(data.entries)){
+          throw new Error("Missing entries array");
+        }
+        parsedBackup = data;
+        renderFileChip(file.name);
+        const count = data.entries.length;
+        preview.innerHTML = '<div class="hint">Found ' + count + ' entr' + (count === 1 ? "y" : "ies") +
+          (data.exportedAt ? " exported " + escapeHtml(new Date(data.exportedAt).toLocaleString()) : "") + '.</div>';
+        confirmBtn.disabled = false;
+      }catch(e){
+        parsedBackup = null;
+        renderFileChip("");
+        preview.innerHTML = "";
+        confirmBtn.disabled = true;
+        status.textContent = "That doesn't look like a valid backup file.";
+      }
+    };
+    reader.onerror = function(){
+      label.innerHTML = 'Drop a backup .json file here, or <strong>browse</strong>';
+      status.textContent = "Could not read that file.";
+    };
+    reader.readAsText(file);
+  }
+
+  dropzone.addEventListener("click", function(){ fileInput.click(); });
+  dropzone.addEventListener("keydown", function(ev){
+    if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); fileInput.click(); }
+  });
+  dropzone.addEventListener("dragover", function(ev){ ev.preventDefault(); dropzone.classList.add("drag-over"); });
+  dropzone.addEventListener("dragleave", function(){ dropzone.classList.remove("drag-over"); });
+  dropzone.addEventListener("drop", function(ev){
+    ev.preventDefault();
+    dropzone.classList.remove("drag-over");
+    if(ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0]){
+      readFile(ev.dataTransfer.files[0]);
+    }
+  });
+  fileInput.addEventListener("change", function(){
+    if(fileInput.files && fileInput.files[0]){
+      readFile(fileInput.files[0]);
+    }
+  });
+
+  document.getElementById("import-cancel").addEventListener("click", closeModal);
+
+  confirmBtn.addEventListener("click", async function(){
+    if(!parsedBackup) return;
+    const mode = document.querySelector('input[name="import-mode"]:checked').value;
+    confirmBtn.disabled = true;
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Importing\u2026';
+    try{
+      if(mode === "replace"){
+        const keysResult = await window.storage.list("submission:", true);
+        const existingKeys = keysResult && keysResult.keys ? keysResult.keys : [];
+        for(const k of existingKeys){
+          try{ await window.storage.delete(k, true); }catch(e){}
+        }
+      }
+
+      const existingSignatures = mode === "merge" ? new Set(allEntries.map(function(e){
+        return e.name + "|" + e.category + "|" + e.text + "|" + e.timestamp;
+      })) : new Set();
+
+      const keyMap = {};
+      let imported = 0;
+      for(const raw of parsedBackup.entries){
+        const signature = (raw.name||"") + "|" + (raw.category||"") + "|" + (raw.text||"") + "|" + raw.timestamp;
+        if(mode === "merge" && existingSignatures.has(signature)) continue;
+        const newKey = "submission:" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+        if(raw.key) keyMap[raw.key] = newKey;
+        const toSave = {
+          name: raw.name || "", category: raw.category || "", topic: raw.topic || "", text: raw.text || "",
+          timestamp: raw.timestamp || Date.now(), used: !!raw.used, essayText: raw.essayText || "",
+          essayUrl: raw.essayUrl || "", essayFileName: raw.essayFileName || "", linkedTo: raw.linkedTo || ""
+        };
+        await window.storage.set(newKey, JSON.stringify(toSave), true);
+        imported++;
+      }
+
+      for(const oldKey in keyMap){
+        const newKey = keyMap[oldKey];
+        const res = await window.storage.get(newKey, true);
+        if(res && res.value){
+          const parsed = JSON.parse(res.value);
+          if(parsed.linkedTo && keyMap[parsed.linkedTo]){
+            parsed.linkedTo = keyMap[parsed.linkedTo];
+            await window.storage.set(newKey, JSON.stringify(parsed), true);
+          }
+        }
+      }
+
+      if(parsedBackup.settings && mode === "replace"){
+        const newSettings = Object.assign({}, DEFAULT_SETTINGS, parsedBackup.settings);
+        await window.storage.set(SETTINGS_KEY, JSON.stringify(newSettings), true);
+        siteSettings = newSettings;
+        applySiteSettings();
+      }
+
+      status.textContent = "Imported " + imported + " entr" + (imported === 1 ? "y" : "ies") + ".";
+      await loadEntries();
+      setTimeout(closeModal, 900);
+    }catch(e){
+      status.textContent = "Import failed. Nothing after the error point was saved.";
+      confirmBtn.disabled = false;
+    }
+  });
+}
+
+function showLoginModal(){
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Manage the docket</h2>' +
+      '<label for="admin-user">Username</label>' +
+      '<input type="text" id="admin-user" autocomplete="off">' +
+      '<label for="admin-pass">Password</label>' +
+      '<input type="password" id="admin-pass" autocomplete="off">' +
+      '<div class="status" id="admin-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="admin-cancel">Cancel</button>' +
+        '<button id="admin-login">Log in</button>' +
+      '</div>' +
+      '<div class="admin-note">This is a simple gate, not real security. The credentials live in this page&#39;s code and are not encrypted. Do not use it to protect anything sensitive.</div>' +
+    '</div></div>'
+  );
+  document.getElementById("admin-cancel").addEventListener("click", closeModal);
+  document.getElementById("admin-login").addEventListener("click", function(){
+    const u = document.getElementById("admin-user").value;
+    const p = document.getElementById("admin-pass").value;
+    if(u === ADMIN_USER && p === ADMIN_PASS){
+      isAdmin = true;
+      closeModal();
+      document.getElementById("lock-btn").textContent = "Admin mode";
+      document.getElementById("lock-btn").classList.add("on");
+      render();
+    }else{
+      document.getElementById("admin-status").textContent = "Wrong username or password.";
+    }
+  });
+  document.getElementById("admin-pass").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter"){ document.getElementById("admin-login").click(); }
+  });
+}
+
+function showEditHeadingModal(){
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Edit page text</h2>' +
+      '<label for="edit-eyebrow">Eyebrow</label>' +
+      '<input type="text" id="edit-eyebrow" value="' + escapeHtml(siteSettings.eyebrow) + '">' +
+      '<label for="edit-title">Title</label>' +
+      '<input type="text" id="edit-title" value="' + escapeHtml(siteSettings.title) + '">' +
+      '<label for="edit-sub">Subheading</label>' +
+      '<textarea id="edit-sub" style="min-height:80px;">' + escapeHtml(siteSettings.sub) + '</textarea>' +
+      '<div class="status" id="edit-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="edit-cancel">Cancel</button>' +
+        '<button id="edit-save">Save</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+  document.getElementById("edit-cancel").addEventListener("click", closeModal);
+  document.getElementById("edit-save").addEventListener("click", async function(){
+    const eyebrow = document.getElementById("edit-eyebrow").value.trim() || DEFAULT_SETTINGS.eyebrow;
+    const title = document.getElementById("edit-title").value.trim() || DEFAULT_SETTINGS.title;
+    const sub = document.getElementById("edit-sub").value.trim() || DEFAULT_SETTINGS.sub;
+    const status = document.getElementById("edit-status");
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
+    try{
+      const newSettings = { eyebrow:eyebrow, title:title, sub:sub };
+      const result = await window.storage.set(SETTINGS_KEY, JSON.stringify(newSettings), true);
+      if(!result) throw new Error("no result");
+      siteSettings = newSettings;
+      applySiteSettings();
+      closeModal();
+    }catch(e){
+      status.textContent = "Could not save. Try again.";
+    }
+  });
+}
+
+document.getElementById("lock-btn").addEventListener("click", function(){
+  if(isAdmin){
+    isAdmin = false;
+    document.getElementById("lock-btn").textContent = "Manage";
+    document.getElementById("lock-btn").classList.remove("on");
+    render();
+  }else{
+    showLoginModal();
+  }
+});
+
+document.getElementById("edit-heading-btn").addEventListener("click", showEditHeadingModal);
+
+function updateFooterBarVisibility(){
+  const bar = document.querySelector(".footer-bar");
+  if(!bar) return;
+  const scrolledToBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 40);
+  bar.classList.toggle("visible", scrolledToBottom);
+}
+window.addEventListener("scroll", updateFooterBarVisibility, {passive:true});
+window.addEventListener("resize", updateFooterBarVisibility);
+
+loadTheme();
+loadSiteSettings();
+loadEntries();
+updateFooterBarVisibility();
+</script>
+</body>
+</html>
