@@ -5,87 +5,85 @@
 <title>The Docket</title>
 <style>
   :root{
-    /* ===== Discord theme (default) ===== */
-    --primary:#5865f2;
-    --primary-active:#4752c4;
-    --on-primary:#ffffff;
-    --btn-bg:#35ed7e;
-    --btn-text:#000000;
-    --btn-active-bg:#2fd671;
-    --btn-radius:12px;
-    --btn-weight:600;
-    --btn-transform:uppercase;
-    --btn-tracking:0.02em;
+    /* ===== Dark Academia theme (default) — same layout/type as Warm, different palette ===== */
+    --primary:#8a5a3d;
+    --primary-active:#6e4530;
+    --on-primary:#f2e9d8;
+    --btn-bg:#a67c3d;
+    --btn-text:#1c1712;
+    --btn-active-bg:#8a6530;
+    --btn-radius:8px;
+    --btn-weight:500;
+    --btn-transform:none;
+    --btn-tracking:0;
 
-    --eyebrow-bg:#ec48bd;
-    --eyebrow-text:#ffffff;
+    --eyebrow-bg:#6b2d2d;
+    --eyebrow-text:#f0e6d2;
 
-    --canvas:#0a0d3a;
-    --page-bg-image:
-      radial-gradient(circle at 15% 0%, rgba(88,101,242,0.35), transparent 45%),
-      radial-gradient(circle at 90% 25%, rgba(236,72,189,0.22), transparent 50%);
+    --canvas:#171310;
+    --page-bg-image:none;
 
-    --surface-1:#1e2353;
-    --surface-2:#23272a;
-    --border-1:rgba(255,255,255,0.10);
+    --surface-1:#241e18;
+    --surface-2:#1c1712;
+    --border-1:#3d332a;
 
-    --ink:#ffffff;
-    --body-text:#ffffff;
-    --muted:#a7abd6;
+    --ink:#e8dfc8;
+    --body-text:#d3c9ae;
+    --muted:#9c8f74;
 
-    --input-bg:rgba(255,255,255,0.06);
-    --input-border:rgba(255,255,255,0.10);
-    --input-radius:16px;
-    --input-focus-border:#00b0f4;
-    --input-focus-ring:rgba(0,176,244,0.25);
+    --input-bg:#1e1913;
+    --input-border:#3d332a;
+    --input-radius:8px;
+    --input-focus-border:#a67c3d;
+    --input-focus-ring:rgba(166,124,61,0.2);
 
-    --card-radius:32px;
-    --card-shadow:0 3px 68px rgba(69,42,124,0.25);
+    --card-radius:12px;
+    --card-shadow:none;
 
-    --heading-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    --heading-weight:800;
-    --heading-transform:uppercase;
-    --heading-tracking:0;
-    --body-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --heading-font:Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+    --heading-weight:400;
+    --heading-transform:none;
+    --heading-tracking:-0.02em;
+    --body-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 
-    --tab-radius:9999px;
-    --tab-active-bg:#5865f2;
-    --tab-active-text:#ffffff;
-    --tab-inactive-bg:rgba(255,255,255,0.05);
-    --tab-inactive-text:#a7abd6;
-    --tab-active-shadow:0 3px 14px rgba(88,101,242,0.45);
+    --tab-radius:8px;
+    --tab-active-bg:#33291e;
+    --tab-active-text:#e8dfc8;
+    --tab-inactive-bg:transparent;
+    --tab-inactive-text:#9c8f74;
+    --tab-active-shadow:none;
 
-    --link-color:#00b0f4;
-    --case-no-color:#ec48bd;
+    --link-color:#c19a56;
+    --case-no-color:#8f8267;
 
-    --cat-badge-bg:#ec48bd;
-    --cat-badge-text:#ffffff;
-    --used-badge-bg:#00b0f4;
-    --used-badge-text:#0a0d3a;
-    --answered-badge-bg:#35ed7e;
-    --answered-badge-text:#0a0d3a;
-    --essay-panel-bg:rgba(0,176,244,0.08);
-    --essay-panel-border:#00b0f4;
+    --cat-badge-bg:#33291e;
+    --cat-badge-text:#e8dfc8;
+    --used-badge-bg:#5c7a52;
+    --used-badge-text:#f2f5ee;
+    --answered-badge-bg:#46613c;
+    --answered-badge-text:#f2f5ee;
+    --essay-panel-bg:rgba(107,45,45,0.14);
+    --essay-panel-border:#8a5a3d;
 
-    --divider:linear-gradient(90deg, #5865f2, #ec48bd);
+    --divider:#a67c3d;
 
-    --danger:#ed4245;
-    --accent2:#ec48bd;
+    --danger:#a13b3b;
+    --accent2:#6b7a5e;
 
-    --modal-bg-color:#1e2353;
-    --modal-radius:16px;
-    --modal-shadow:0 3px 68px rgba(88,101,242,0.35);
+    --modal-bg-color:#241e18;
+    --modal-radius:12px;
+    --modal-shadow:0 12px 32px rgba(0,0,0,0.45);
 
-    --dropzone-border:rgba(0,176,244,0.4);
-    --dropzone-bg:rgba(0,176,244,0.05);
-    --dropzone-active-bg:rgba(0,176,244,0.1);
-    --dropzone-active-border:#00b0f4;
-    --dropzone-icon-bg:#00b0f4;
-    --dropzone-icon-text:#0a0d3a;
+    --dropzone-border:#3d332a;
+    --dropzone-bg:rgba(166,124,61,0.08);
+    --dropzone-active-bg:rgba(166,124,61,0.15);
+    --dropzone-active-border:#a67c3d;
+    --dropzone-icon-bg:#a67c3d;
+    --dropzone-icon-text:#1c1712;
 
-    --entry-hover-shadow:0 6px 24px rgba(88,101,242,0.18);
-    --entry-hover-border:rgba(88,101,242,0.4);
-    --entry-used-border:#00b0f4;
+    --entry-hover-shadow:0 4px 16px rgba(0,0,0,0.4);
+    --entry-hover-border:#3d332a;
+    --entry-used-border:#6b7a5e;
   }
 
   html[data-theme="claude"]{
