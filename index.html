@@ -318,6 +318,73 @@
     color:var(--muted);
     margin-top:0.6rem;
   }
+  .info-tip{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:16px;
+    height:16px;
+    margin-left:0.4rem;
+    border-radius:50%;
+    background:var(--input-bg);
+    border:1px solid var(--border-1);
+    color:var(--muted);
+    font-family:var(--body-font);
+    font-size:10.5px;
+    font-weight:700;
+    line-height:1;
+    cursor:help;
+    vertical-align:middle;
+    transition:background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .info-tip:hover, .info-tip:focus-visible{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:var(--on-primary);
+    outline:none;
+  }
+  .info-tip .info-tip-bubble{
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 10px);
+    transform:translate(-50%,4px);
+    width:min(320px, 78vw);
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    border-radius:12px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.28);
+    padding:0.7rem 0.85rem;
+    font-size:12px;
+    font-weight:400;
+    line-height:1.5;
+    color:var(--body-text);
+    text-align:left;
+    text-transform:none;
+    letter-spacing:0;
+    white-space:normal;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    z-index:20;
+  }
+  .info-tip .info-tip-bubble::after{
+    content:"";
+    position:absolute;
+    top:100%;
+    left:50%;
+    transform:translateX(-50%);
+    border:6px solid transparent;
+    border-top-color:var(--surface-1);
+  }
+  .info-tip:hover .info-tip-bubble,
+  .info-tip:focus-visible .info-tip-bubble{
+    opacity:1;
+    visibility:visible;
+    transform:translate(-50%,0);
+  }
+  .info-tip .info-tip-bubble strong{color:var(--ink);}
   .status{
     font-family:var(--body-font);
     font-size:13px;
@@ -851,7 +918,11 @@
 
     <div class="row">
       <div>
-        <label for="f-cat">Category</label>
+        <label for="f-cat">Category
+          <span class="info-tip" tabindex="0" aria-describedby="cat-hint">?
+            <span class="info-tip-bubble" id="cat-hint" role="tooltip"><strong>Question</strong>: seeking to understand, no counter-claim &middot; <strong>Objection</strong>: argues a claim is false &middot; <strong>Critique</strong>: grants it might be true, but questions its implications or practice</span>
+          </span>
+        </label>
         <select id="f-cat">
           <option value="Question">Question</option>
           <option value="Objection">Objection</option>
@@ -863,7 +934,6 @@
         <input type="text" id="f-topic" placeholder="e.g. suffering, resurrection">
       </div>
     </div>
-    <div class="hint" id="cat-hint"><strong>Question</strong>: seeking to understand, no counter-claim &middot; <strong>Objection</strong>: argues a claim is false &middot; <strong>Critique</strong>: grants it might be true, but questions its implications or practice</div>
 
     <label for="f-text" id="f-text-label">The question, critique, or objection itself</label>
     <textarea id="f-text" placeholder="Write as much or as little as you like."></textarea>
