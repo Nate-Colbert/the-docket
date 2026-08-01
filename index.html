@@ -1493,16 +1493,22 @@ function showBulkDeleteModal(){
     const status = document.getElementById("bulk-delete-status");
     confirmBtn.disabled = true;
     status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Deleting\u2026';
-    try{
-      const keys = Array.from(selectedKeys);
-      await Promise.all(keys.map(function(k){
-        return window.storage.delete(k, true).catch(function(){});
-      }));
-      selectedKeys.clear();
+    const keys = Array.from(selectedKeys);
+    const results = await Promise.allSettled(keys.map(function(k){
+      return window.storage.delete(k, true).then(function(){ return k; });
+    }));
+    const succeeded = [];
+    const failed = [];
+    results.forEach(function(r, i){
+      if(r.status === "fulfilled") succeeded.push(keys[i]);
+      else failed.push(keys[i]);
+    });
+    succeeded.forEach(function(k){ selectedKeys.delete(k); });
+    await loadEntries();
+    if(failed.length === 0){
       closeModal();
-      await loadEntries();
-    }catch(e){
-      status.textContent = "Some entries could not be deleted. Try again.";
+    }else{
+      status.textContent = "Deleted " + succeeded.length + " of " + keys.length + ". " + failed.length + " failed \u2014 the failed ones are still selected, try again.";
       confirmBtn.disabled = false;
     }
   });
