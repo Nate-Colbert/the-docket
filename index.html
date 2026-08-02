@@ -473,12 +473,35 @@
     font-size:12px;
     color:var(--muted);
   }
+  .visitor-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    color:var(--muted);
+    background:transparent;
+    border:1px dashed var(--border-1);
+    border-radius:9999px;
+    padding:0.15rem 0.5rem;
+    cursor:help;
+  }
   .entry-text{
     font-family:var(--body-font);
     font-size:15.5px;
     line-height:1.58;
     white-space:pre-wrap;
     color:var(--ink);
+  }
+  .entry-text .entry-link{
+    color:var(--link-color);
+    text-decoration:underline;
+    text-decoration-color:transparent;
+    word-break:break-word;
+    transition:text-decoration-color 0.15s ease;
+  }
+  .entry-text .entry-link:hover, .entry-text .entry-link:focus-visible{
+    text-decoration-color:currentColor;
   }
   .cat-tag{
     display:inline-block;
@@ -520,6 +543,60 @@
     padding:0.2rem 0.55rem;
     margin-bottom:0.65rem;
     margin-left:0.4rem;
+  }
+  .private-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--danger);
+    background:transparent;
+    border:1px solid var(--danger);
+    border-radius:9999px;
+    padding:0.15rem 0.5rem;
+    margin-bottom:0.65rem;
+    margin-left:0.4rem;
+  }
+  .new-tag{
+    display:inline-block;
+    font-family:var(--body-font);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--on-primary);
+    background:var(--primary);
+    border-radius:9999px;
+    padding:0.2rem 0.55rem;
+    margin-bottom:0.65rem;
+    margin-left:0.4rem;
+  }
+  .entry.is-new{
+    box-shadow:inset 3px 0 0 var(--primary);
+  }
+  .unread-bar{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    font-family:var(--body-font);
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    border-radius:9999px;
+    padding:0.5rem 0.9rem;
+    margin-bottom:1rem;
+    width:fit-content;
+  }
+  .unread-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--primary);
+    flex-shrink:0;
   }
   .linked-note, .related-note{
     font-family:var(--body-font);
@@ -914,6 +991,15 @@
       <label for="f-anon">Submit anonymously (your name won't be attached)</label>
     </div>
 
+    <div class="check-row" style="margin-bottom:0.9rem;">
+      <input type="checkbox" id="f-private">
+      <label for="f-private">Keep this private
+        <span class="info-tip" tabindex="0" aria-describedby="private-hint">?
+          <span class="info-tip-bubble" id="private-hint" role="tooltip"><strong>Public</strong> (default): visible to everyone who has this link. <strong>Private</strong>: visible only to you and whoever manages The Docket &mdash; nobody else sees it, ever. Good for anything more personal or sensitive.</span>
+        </span>
+      </label>
+    </div>
+
     <div class="row">
       <div>
         <label for="f-cat">Category
@@ -966,8 +1052,9 @@
     <button class="tab" data-response-filter="Unanswered">Unanswered</button>
   </div>
 
+  <div class="unread-bar" id="unread-bar" style="display:none;"></div>
   <div id="list"></div>
-  <div class="notice">Visible to everyone who has this link.</div>
+  <div class="notice">Public entries are visible to everyone with this link. Entries marked private are visible only to you and whoever manages The Docket.</div>
 
 </div>
 
@@ -977,7 +1064,7 @@
     <option value="discord">Dark</option>
   </select>
   <button class="edit-heading-btn" id="edit-heading-btn" style="display:none;">Edit text</button>
-  <button class="lock" id="lock-btn">Manage</button>
+  <button class="lock" id="lock-btn">Sign in</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
@@ -1056,28 +1143,164 @@ window.storage = {
 
 <script>
 const ADMIN_USER = "admin";
-const ADMIN_PASS = "docket";
+const ADMIN_PIN = "0000"; // change this — 4 digits, checked against the unified sign-in form
 const SETTINGS_KEY = "settings:site";
 const THEME_KEY = "prefs:theme";
+const WELCOME_KEY = "prefs:welcomeSeen";
+const LAST_VISIT_KEY = "prefs:lastVisit";
 
 const DEFAULT_SETTINGS = {
   eyebrow: "essay prompts, under review",
   title: "The Docket",
-  sub: "File a question, critique, or objection to Christianity below. Everything submitted here is visible to the group and may become the subject of an essay."
+  sub: "File a question, critique, or objection to Christianity below. Public entries are visible to the group and may become the subject of an essay; mark something private if you'd rather only I see it."
 };
 
 let allEntries = [];
+let visibleEntries = [];
 let filter = "All";
 let responseFilter = "All";
 let isAdmin = false;
 let siteSettings = Object.assign({}, DEFAULT_SETTINGS);
 let expandedEssays = {};
 let selectedKeys = new Set();
+let currentUid = null;
+let currentIdentity = null; // { username, usernameSlug, isAdmin } once signed in — persists across devices via username+PIN
+let unreadSinceTs = null; // timestamp of the visitor's previous visit, frozen for this session's "new" badge
+
+// ---- Lightweight username + 4-digit PIN identity ----
+// Not real security (same spirit as the old admin password gate) — just
+// enough to let someone's private entries and admin status follow them
+// across devices instead of being tied to one browser.
+const IDENTITY_STORAGE_KEY = "docket_identity";
+
+function slugify(s){
+  return String(s || "").trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+}
+function simpleHash(s){
+  let h = 0;
+  const str = String(s);
+  for(let i=0;i<str.length;i++){
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
+function saveIdentityLocally(identity){
+  try{ localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(identity)); }catch(e){}
+}
+function loadIdentityLocally(){
+  try{
+    const raw = localStorage.getItem(IDENTITY_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function clearIdentityLocally(){
+  try{ localStorage.removeItem(IDENTITY_STORAGE_KEY); }catch(e){}
+}
+
+// Registers a new username+PIN the first time it's used, or verifies the PIN
+// against the record already on file. The reserved ADMIN_USER username is
+// checked straight against ADMIN_PIN instead of going through Firestore.
+async function signIn(rawUsername, slug, pin){
+  if(slug === slugify(ADMIN_USER)){
+    if(pin === ADMIN_PIN){
+      return { ok:true, username: rawUsername || ADMIN_USER, isAdmin:true };
+    }
+    return { ok:false, message:"Wrong PIN for that username." };
+  }
+  const pinHash = simpleHash(pin + ":" + slug);
+  const key = "login:" + slug;
+  try{
+    const existing = await window.storage.get(key, true);
+    const record = existing && existing.value ? JSON.parse(existing.value) : null;
+    if(record && record.pinHash){
+      if(record.pinHash === pinHash){
+        return { ok:true, username: record.username || rawUsername, isAdmin:false };
+      }
+      return { ok:false, message:"Wrong PIN for that username. Try again, or use a different username." };
+    }
+  }catch(e){
+    // not found -> falls through to registration below
+  }
+  await window.storage.set(key, JSON.stringify({ username: rawUsername, pinHash: pinHash, createdAt: Date.now() }), true);
+  return { ok:true, username: rawUsername, isAdmin:false };
+}
+
+function signOut(){
+  currentIdentity = null;
+  isAdmin = false;
+  clearIdentityLocally();
+  updateAccountUI();
+  render();
+}
+
+function restoreIdentity(){
+  const saved = loadIdentityLocally();
+  if(saved && saved.usernameSlug){
+    currentIdentity = saved;
+    isAdmin = !!saved.isAdmin;
+  }
+  updateAccountUI();
+  prefillNameFromIdentity();
+}
+
+function prefillNameFromIdentity(){
+  const nameInput = document.getElementById("f-name");
+  if(nameInput && currentIdentity && !nameInput.value.trim()){
+    nameInput.value = currentIdentity.username;
+  }
+}
+
+function updateAccountUI(){
+  const btn = document.getElementById("lock-btn");
+  if(!btn) return;
+  if(currentIdentity && currentIdentity.isAdmin){
+    btn.textContent = "Manager: " + currentIdentity.username + " (sign out)";
+    btn.classList.add("on");
+  }else if(currentIdentity){
+    btn.textContent = currentIdentity.username + " (sign out)";
+    btn.classList.remove("on");
+  }else{
+    btn.textContent = "Sign in";
+    btn.classList.remove("on");
+  }
+}
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
   });
+}
+
+// Detects URLs (http/https, www., and bare links to common platforms like
+// YouTube/Instagram/etc.) inside plain entry text and turns them into real
+// clickable links, while still safely escaping everything else.
+const LINK_PLATFORM_HOSTS = "youtu\\.be|youtube\\.com|instagram\\.com|vimeo\\.com|open\\.spotify\\.com|twitter\\.com|x\\.com|tiktok\\.com|facebook\\.com|soundcloud\\.com|reddit\\.com|threads\\.net";
+const URL_REGEX = new RegExp(
+  "((?:https?://|www\\.)[^\\s<]+|\\b(?:" + LINK_PLATFORM_HOSTS + ")/[^\\s<]+)",
+  "gi"
+);
+function linkifyText(raw){
+  const str = String(raw == null ? "" : raw);
+  let out = "";
+  let last = 0;
+  let m;
+  URL_REGEX.lastIndex = 0;
+  while((m = URL_REGEX.exec(str)) !== null){
+    let match = m[0];
+    let trail = "";
+    // don't swallow trailing sentence punctuation into the link
+    while(match.length && /[),.;:!?'"\]]$/.test(match)){
+      trail = match.slice(-1) + trail;
+      match = match.slice(0, -1);
+    }
+    if(!match) continue;
+    out += escapeHtml(str.slice(last, m.index));
+    const href = normalizeUrl(match);
+    out += '<a class="entry-link" href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(match) + '</a>' + escapeHtml(trail);
+    last = m.index + m[0].length;
+  }
+  out += escapeHtml(str.slice(last));
+  return out;
 }
 
 function openModal(html){
@@ -1095,6 +1318,50 @@ function openModal(html){
 function closeModal(){
   document.getElementById("modal-slot").innerHTML = "";
   document.body.classList.remove("modal-lock");
+}
+
+function showWelcomeModal(){
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Hey, before you go&hellip;</h2>' +
+      '<div class="hint" style="margin-top:0;font-size:14px;line-height:1.6;">' +
+        "I'm working on writing proper, essay-length responses to the honest questions, objections, and critiques people have about Christianity, philosophy, and faith &mdash; and I'd love your help. " +
+        "If something's been on your mind, drop it in below. Write under your name, or tick anonymous if you'd rather I not know it was you &mdash; either way, I'll take it seriously." +
+      '</div>' +
+      '<div class="modal-actions" style="justify-content:flex-end;">' +
+        '<button id="welcome-ok">Got it</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+  document.getElementById("welcome-ok").addEventListener("click", async function(){
+    closeModal();
+    try{ await window.storage.set(WELCOME_KEY, "1", false); }catch(e){}
+  });
+}
+
+async function maybeShowWelcome(){
+  try{
+    await window.storage.get(WELCOME_KEY, false);
+    // key exists -> this visitor has already seen it, do nothing
+  }catch(e){
+    // key not found -> first visit
+    showWelcomeModal();
+  }
+}
+
+// Reads (and then refreshes) this visitor's last-visit timestamp so render()
+// can badge/highlight entries filed since they were last here. The timestamp
+// read is frozen in unreadSinceTs for the whole session, so the "N new"
+// count doesn't shrink to zero the moment render() runs.
+async function trackVisit(){
+  try{
+    const res = await window.storage.get(LAST_VISIT_KEY, false);
+    unreadSinceTs = res && res.value ? Number(res.value) : null;
+  }catch(e){
+    unreadSinceTs = null; // first visit ever -> nothing to badge as "new" yet
+  }
+  try{ await window.storage.set(LAST_VISIT_KEY, String(Date.now()), false); }catch(e){}
+  render();
 }
 
 function formatDate(ts){
@@ -1160,9 +1427,25 @@ async function loadSiteSettings(){
   applySiteSettings();
 }
 
+function visibleToViewer(e){
+  if(isAdmin) return true;
+  if(e.visibility !== "private") return true;
+  if(e.ownerId){
+    return !!(currentIdentity && e.ownerId === currentIdentity.usernameSlug);
+  }
+  return !!(e.uid && currentUid && e.uid === currentUid);
+}
+
+function isNewEntry(e){
+  if(unreadSinceTs == null || e.timestamp <= unreadSinceTs) return false;
+  if(currentIdentity && e.ownerId && e.ownerId === currentIdentity.usernameSlug) return false;
+  if(e.uid && currentUid && e.uid === currentUid) return false;
+  return true;
+}
+
 function countFor(cat){
-  if(cat === "All") return allEntries.length;
-  return allEntries.filter(function(e){ return e.category === cat; }).length;
+  if(cat === "All") return visibleEntries.length;
+  return visibleEntries.filter(function(e){ return e.category === cat; }).length;
 }
 
 function normalizeUrl(u){
@@ -1188,21 +1471,35 @@ function render(){
   const list = document.getElementById("list");
   const liveKeys = new Set(allEntries.map(function(e){ return e.key; }));
   selectedKeys.forEach(function(k){ if(!liveKeys.has(k)) selectedKeys.delete(k); });
+
+  visibleEntries = allEntries.filter(visibleToViewer);
+
   document.querySelectorAll("#tabs .tab").forEach(function(t){
     const cat = t.dataset.filter;
     const base = cat === "All" ? "All" : (cat + "s");
     t.textContent = base + " (" + countFor(cat) + ")";
   });
 
-  const answeredCount = allEntries.filter(function(e){ const r = resolveEssay(e); return !!(r.url || r.text); }).length;
+  const answeredCount = visibleEntries.filter(function(e){ const r = resolveEssay(e); return !!(r.url || r.text); }).length;
   document.querySelectorAll("#response-tabs .tab").forEach(function(t){
     const rf = t.dataset.responseFilter;
-    if(rf === "All") t.textContent = "All statuses (" + allEntries.length + ")";
+    if(rf === "All") t.textContent = "All statuses (" + visibleEntries.length + ")";
     else if(rf === "Answered") t.textContent = "Answered (" + answeredCount + ")";
-    else t.textContent = "Unanswered (" + (allEntries.length - answeredCount) + ")";
+    else t.textContent = "Unanswered (" + (visibleEntries.length - answeredCount) + ")";
   });
 
-  let filtered = filter === "All" ? allEntries : allEntries.filter(function(e){ return e.category === filter; });
+  const newCount = visibleEntries.filter(isNewEntry).length;
+  const unreadBar = document.getElementById("unread-bar");
+  if(unreadBar){
+    if(newCount > 0){
+      unreadBar.style.display = "";
+      unreadBar.innerHTML = '<span class="unread-dot" aria-hidden="true"></span>' + newCount + ' new entr' + (newCount === 1 ? "y" : "ies") + ' since your last visit';
+    }else{
+      unreadBar.style.display = "none";
+    }
+  }
+
+  let filtered = filter === "All" ? visibleEntries : visibleEntries.filter(function(e){ return e.category === filter; });
   if(responseFilter === "Answered"){
     filtered = filtered.filter(function(e){ const r = resolveEssay(e); return !!(r.url || r.text); });
   }else if(responseFilter === "Unanswered"){
@@ -1249,14 +1546,14 @@ function render(){
 
     let linkedNote = "";
     if(e.linkedTo){
-      const target = allEntries.find(function(t){ return t.key === e.linkedTo; });
+      const target = visibleEntries.find(function(t){ return t.key === e.linkedTo; });
       if(target){
         linkedNote = '<div class="linked-note">Same as <button data-action="jump-to-entry" data-target-key="' + escapeHtml(target.key) + '">Case No. ' + String(target.caseNo).padStart(4,"0") + '</button></div>';
       }
     }
 
     let relatedNote = "";
-    const related = allEntries.filter(function(o){ return o.linkedTo === e.key; });
+    const related = visibleEntries.filter(function(o){ return o.linkedTo === e.key; });
     if(related.length > 0){
       relatedNote = '<div class="related-note">Also raised in: ' + related.map(function(r){
         return '<button data-action="jump-to-entry" data-target-key="' + escapeHtml(r.key) + '">Case No. ' + String(r.caseNo).padStart(4,"0") + '</button>';
@@ -1272,16 +1569,19 @@ function render(){
       '</div>'
     ) : "";
 
-    return '<div class="entry' + (e.used ? " used" : "") + '" data-entry-key="' + escapeHtml(e.key) + '">' +
+    return '<div class="entry' + (e.used ? " used" : "") + (isNewEntry(e) ? " is-new" : "") + '" data-entry-key="' + escapeHtml(e.key) + '">' +
       '<div class="entry-head">' +
         selectBox +
         '<span class="case-no">Case No. ' + num + '</span>' +
         '<span class="meta">' + escapeHtml(e.name || "Anonymous") + ' &middot; ' + formatDate(e.timestamp) + '</span>' +
+        (isAdmin ? '<span class="visitor-tag" title="Consistent tag for this contributor across their entries \u2014 not necessarily their real display name">' + escapeHtml(visitorTag(e)) + '</span>' : "") +
       '</div>' +
       '<div class="cat-tag">' + escapeHtml(e.category) + (e.topic ? " &middot; " + escapeHtml(e.topic) : "") + '</div>' +
+      (e.visibility === "private" ? '<span class="private-tag">Private</span>' : "") +
       (e.used ? '<span class="used-tag">Used</span>' : "") +
       (isAnswered ? '<span class="answered-tag">Answered</span>' : "") +
-      '<div class="entry-text">' + escapeHtml(e.text) + '</div>' +
+      (isNewEntry(e) ? '<span class="new-tag">New</span>' : "") +
+      '<div class="entry-text">' + linkifyText(e.text) + '</div>' +
       essayRow +
       linkedNote +
       relatedNote +
@@ -1324,6 +1624,7 @@ async function loadEntries(){
   const list = document.getElementById("list");
   list.innerHTML = '<div class="empty"><span class="spinner" aria-hidden="true"></span>Loading the docket&hellip;</div>';
   try{
+    currentUid = await authReadyPromise;
     const keysResult = await window.storage.list("submission:", true);
     const keys = keysResult && keysResult.keys ? keysResult.keys : [];
     const results = await Promise.all(keys.map(async function(key){
@@ -1348,8 +1649,36 @@ async function loadEntries(){
   }
 }
 
-async function fileOne(name, category, topic, text){
-  const entry = { name:name, category:category, topic:topic, text:text, timestamp: Date.now(), used:false, essayText:"", essayUrl:"", essayFileName:"", linkedTo:"" };
+// Fallback pseudonym for entries filed before the username+PIN login existed
+// (or by someone who never signed in) — deterministic per browser/device uid,
+// not a verified identity.
+const TAG_ADJECTIVES = ["Quiet","Steady","Curious","Gentle","Bold","Patient","Earnest","Wandering","Careful","Restless","Thoughtful","Candid","Humble","Wry","Searching","Hopeful","Guarded","Plainspoken"];
+const TAG_NOUNS = ["Falcon","Oak","River","Lantern","Compass","Harbor","Ember","Cedar","Sparrow","Anchor","Willow","Beacon","Meadow","Fern","Tide","Heron","Pinewood","Summit"];
+function legacyVisitorTag(uid){
+  if(!uid) return "Unknown visitor";
+  let hash = 0;
+  for(let i=0;i<uid.length;i++){
+    hash = ((hash << 5) - hash + uid.charCodeAt(i)) | 0;
+  }
+  const a = TAG_ADJECTIVES[Math.abs(hash) % TAG_ADJECTIVES.length];
+  const n = TAG_NOUNS[Math.abs(hash >> 3) % TAG_NOUNS.length];
+  return a + " " + n;
+}
+function visitorTag(e){
+  if(e.ownerUsername) return e.ownerUsername;
+  return legacyVisitorTag(e.uid);
+}
+
+async function fileOne(name, category, topic, text, visibility){
+  const uid = await authReadyPromise;
+  const entry = {
+    name:name, category:category, topic:topic, text:text, timestamp: Date.now(),
+    used:false, essayText:"", essayUrl:"", essayFileName:"", linkedTo:"",
+    uid:uid,
+    ownerId: currentIdentity ? currentIdentity.usernameSlug : "",
+    ownerUsername: currentIdentity ? currentIdentity.username : "",
+    visibility:visibility
+  };
   const key = "submission:" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
   const result = await window.storage.set(key, JSON.stringify(entry), true);
   if(!result) throw new Error("Storage returned no result");
@@ -1362,8 +1691,16 @@ async function handleSubmit(){
   const topic = document.getElementById("f-topic").value.trim();
   const rawText = document.getElementById("f-text").value;
   const bulk = document.getElementById("f-bulk").checked;
+  const wantsPrivate = document.getElementById("f-private").checked;
   const status = document.getElementById("f-status");
   const btn = document.getElementById("f-submit");
+
+  if(wantsPrivate && !currentIdentity){
+    status.textContent = "Sign in first so entries marked private can be tied back to you.";
+    showLoginModal();
+    return;
+  }
+  const visibility = wantsPrivate ? "private" : "public";
 
   const items = bulk
     ? rawText.split("\n").map(function(s){ return s.trim(); }).filter(Boolean)
@@ -1379,7 +1716,7 @@ async function handleSubmit(){
 
   try{
     for(const item of items){
-      await fileOne(name, category, topic, item);
+      await fileOne(name, category, topic, item, visibility);
     }
     document.getElementById("f-text").value = "";
     status.textContent = items.length > 1
@@ -1893,35 +2230,59 @@ function showImportModal(){
 function showLoginModal(){
   openModal(
     '<div class="modal-overlay"><div class="modal">' +
-      '<h2>Manage the docket</h2>' +
-      '<label for="admin-user">Username</label>' +
-      '<input type="text" id="admin-user" autocomplete="off">' +
-      '<label for="admin-pass">Password</label>' +
-      '<input type="password" id="admin-pass" autocomplete="off">' +
-      '<div class="status" id="admin-status"></div>' +
+      '<h2>Sign in</h2>' +
+      '<div class="hint" style="margin-top:0;">Pick a username and a 4-digit PIN. The first time you use a username, it becomes yours &mdash; use the same username and PIN on any device to see your private entries there too.</div>' +
+      '<label for="login-user">Username</label>' +
+      '<input type="text" id="login-user" autocomplete="off" autocapitalize="off" spellcheck="false">' +
+      '<label for="login-pin">4-digit PIN</label>' +
+      '<input type="password" id="login-pin" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">' +
+      '<div class="status" id="login-status"></div>' +
       '<div class="modal-actions">' +
-        '<button class="cancel" id="admin-cancel">Cancel</button>' +
-        '<button id="admin-login">Log in</button>' +
+        '<button class="cancel" id="login-cancel">Cancel</button>' +
+        '<button id="login-submit">Sign in</button>' +
       '</div>' +
-      '<div class="admin-note">This is a simple gate, not real security. The credentials live in this page&#39;s code and are not encrypted. Do not use it to protect anything sensitive.</div>' +
+      '<div class="admin-note">This is a simple gate for keeping track of who&#39;s who across devices, not real security. Don&#39;t reuse a sensitive password as your PIN.</div>' +
     '</div></div>'
   );
-  document.getElementById("admin-cancel").addEventListener("click", closeModal);
-  document.getElementById("admin-login").addEventListener("click", function(){
-    const u = document.getElementById("admin-user").value;
-    const p = document.getElementById("admin-pass").value;
-    if(u === ADMIN_USER && p === ADMIN_PASS){
-      isAdmin = true;
-      closeModal();
-      document.getElementById("lock-btn").textContent = "Admin mode";
-      document.getElementById("lock-btn").classList.add("on");
-      render();
-    }else{
-      document.getElementById("admin-status").textContent = "Wrong username or password.";
+  document.getElementById("login-cancel").addEventListener("click", closeModal);
+  const submit = async function(){
+    const rawUser = document.getElementById("login-user").value.trim();
+    const pin = document.getElementById("login-pin").value.trim();
+    const status = document.getElementById("login-status");
+    const slug = slugify(rawUser);
+    if(!slug){
+      status.textContent = "Enter a username.";
+      return;
     }
-  });
-  document.getElementById("admin-pass").addEventListener("keydown", function(ev){
-    if(ev.key === "Enter"){ document.getElementById("admin-login").click(); }
+    if(!/^\d{4}$/.test(pin)){
+      status.textContent = "PIN must be exactly 4 digits.";
+      return;
+    }
+    const btn = document.getElementById("login-submit");
+    btn.disabled = true;
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Signing in\u2026';
+    try{
+      const result = await signIn(rawUser, slug, pin);
+      if(result.ok){
+        currentIdentity = { username: result.username, usernameSlug: slug, isAdmin: result.isAdmin };
+        isAdmin = result.isAdmin;
+        saveIdentityLocally(currentIdentity);
+        updateAccountUI();
+        prefillNameFromIdentity();
+        closeModal();
+        render();
+      }else{
+        status.textContent = result.message;
+        btn.disabled = false;
+      }
+    }catch(e){
+      status.textContent = "Something went wrong. Try again.";
+      btn.disabled = false;
+    }
+  };
+  document.getElementById("login-submit").addEventListener("click", submit);
+  document.getElementById("login-pin").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter") submit();
   });
 }
 
@@ -1963,11 +2324,8 @@ function showEditHeadingModal(){
 }
 
 document.getElementById("lock-btn").addEventListener("click", function(){
-  if(isAdmin){
-    isAdmin = false;
-    document.getElementById("lock-btn").textContent = "Manage";
-    document.getElementById("lock-btn").classList.remove("on");
-    render();
+  if(currentIdentity){
+    signOut();
   }else{
     showLoginModal();
   }
@@ -1984,10 +2342,12 @@ function updateFooterBarVisibility(){
 window.addEventListener("scroll", updateFooterBarVisibility, {passive:true});
 window.addEventListener("resize", updateFooterBarVisibility);
 
+restoreIdentity();
 loadTheme();
 loadSiteSettings();
-loadEntries();
+loadEntries().then(function(){ trackVisit(); });
 updateFooterBarVisibility();
+maybeShowWelcome();
 </script>
 </body>
 </html>
