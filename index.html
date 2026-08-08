@@ -1011,8 +1011,28 @@
     font-weight:600;
   }
   .file-chip button:hover{background:none;box-shadow:none;filter:none;text-decoration:underline;}
-  .essay-html-preview{
+  .essay-html-toolbar{
+    display:flex;
+    gap:0.4rem;
     margin-top:0.8rem;
+  }
+  .essay-html-toolbar button{
+    width:auto;
+    margin:0;
+    padding:0.4rem 0.75rem;
+    font-size:12.5px;
+    font-weight:600;
+    text-transform:none;
+    background:var(--surface-1);
+    border:1px solid var(--border-1);
+    color:var(--ink);
+    box-shadow:none;
+    border-radius:6px;
+  }
+  .essay-html-toolbar button:hover{filter:none;background:var(--essay-panel-bg);box-shadow:none;}
+  .essay-html-toolbar button strong, .essay-html-toolbar button em{font-family:var(--body-font);}
+  .essay-html-preview{
+    margin-top:0.5rem;
     max-height:220px;
     overflow-y:auto;
     padding:0.9rem 1rem;
@@ -1020,6 +1040,11 @@
     border:1px solid var(--input-border);
     border-radius:var(--input-radius);
     font-size:14px;
+  }
+  .essay-html-preview[contenteditable="true"]:focus{
+    outline:none;
+    border-color:var(--input-focus-border);
+    box-shadow:0 0 0 3px var(--input-focus-ring);
   }
   .essay-html-preview h1, .essay-html-preview h2, .essay-html-preview h3,
   .essay-html-preview h4, .essay-html-preview h5, .essay-html-preview h6{
@@ -2329,6 +2354,12 @@ function showEssayModal(entry){
       '</div>' +
       '<input type="file" id="essay-file-input" accept=".txt,.md,.epub,text/plain,text/markdown,application/epub+zip" style="display:none;">' +
       '<div id="file-chip-slot" style="margin-top:0.8rem;"></div>' +
+      '<div class="essay-html-toolbar" id="essay-html-toolbar" style="display:none;">' +
+        '<button type="button" id="essay-fmt-bold" title="Bold selected text"><strong>B</strong></button>' +
+        '<button type="button" id="essay-fmt-italic" title="Italicize selected text"><em>I</em></button>' +
+        '<button type="button" id="essay-fmt-undo" title="Undo last change">&#8630; Undo</button>' +
+      '</div>' +
+      '<div class="dropzone-sub" id="essay-html-hint" style="display:none;margin-top:0.4rem;">Select text below, then Bold/Italicize it &mdash; or Undo your last change.</div>' +
       '<div id="essay-html-preview-slot"></div>' +
       '<div class="or-divider"><span class="line"></span><span>or</span><span class="line"></span></div>' +
       '<label for="essay-url">Paste a link instead (Google Doc, blog post, etc.)</label>' +
@@ -2351,18 +2382,37 @@ function showEssayModal(entry){
 
   function renderHtmlPreview(){
     const slot = document.getElementById("essay-html-preview-slot");
+    const toolbar = document.getElementById("essay-html-toolbar");
+    const hint = document.getElementById("essay-html-hint");
     const textarea = document.getElementById("essay-text");
     if(epubHtml){
-      slot.innerHTML = '<div class="essay-html-preview">' + epubHtml + '</div>';
+      slot.innerHTML = '<div class="essay-html-preview" id="essay-html-editor" contenteditable="true" spellcheck="false"></div>';
+      const editor = document.getElementById("essay-html-editor");
+      editor.innerHTML = epubHtml;
+      try{ document.execCommand("defaultParagraphSeparator", false, "br"); }catch(e){}
+      toolbar.style.display = "flex";
+      hint.style.display = "block";
       textarea.disabled = true;
       textarea.placeholder = "Remove the uploaded EPUB above to type or paste text instead";
     }else{
       slot.innerHTML = "";
+      toolbar.style.display = "none";
+      hint.style.display = "none";
       textarea.disabled = false;
       textarea.placeholder = "Filled in automatically if you upload a .txt or .md file above";
     }
   }
   renderHtmlPreview();
+
+  // Bold / italic / undo act on whatever's selected inside the editable
+  // preview. mousedown+preventDefault stops the buttons from stealing focus
+  // (and the selection with it) before the command runs.
+  ["essay-fmt-bold", "essay-fmt-italic", "essay-fmt-undo"].forEach(function(id){
+    document.getElementById(id).addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+  });
+  document.getElementById("essay-fmt-bold").addEventListener("click", function(){ document.execCommand("bold"); });
+  document.getElementById("essay-fmt-italic").addEventListener("click", function(){ document.execCommand("italic"); });
+  document.getElementById("essay-fmt-undo").addEventListener("click", function(){ document.execCommand("undo"); });
 
   function renderFileChip(){
     const chipSlot = document.getElementById("file-chip-slot");
@@ -2440,6 +2490,13 @@ function showEssayModal(entry){
     const status = document.getElementById("essay-status");
     status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
     try{
+      const editor = document.getElementById("essay-html-editor");
+      if(editor){
+        // Re-sanitize on save so any manual bold/italic toggles (and whatever
+        // markup the browser's contenteditable produced for them) get
+        // normalized down to our clean tag set before being stored.
+        epubHtml = sanitizeEssayHtml(editor.innerHTML);
+      }
       const format = epubHtml ? "html" : "markdown";
       const text = epubHtml ? epubHtml : document.getElementById("essay-text").value.trim();
       const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayUrl:url, essayText:text, essayFormat:format, essayFileName:currentFileName, linkedTo:entry.linkedTo||"" };
