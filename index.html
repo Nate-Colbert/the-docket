@@ -1010,6 +1010,31 @@
     font-weight:600;
   }
   .file-chip button:hover{background:none;box-shadow:none;filter:none;text-decoration:underline;}
+  .essay-html-preview{
+    margin-top:0.8rem;
+    max-height:220px;
+    overflow-y:auto;
+    padding:0.9rem 1rem;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:var(--input-radius);
+    font-size:14px;
+  }
+  .essay-html-preview h1, .essay-html-preview h2, .essay-html-preview h3,
+  .essay-html-preview h4, .essay-html-preview h5, .essay-html-preview h6{
+    font-family:var(--heading-font);
+    color:var(--ink);
+    margin:0.9em 0 0.4em;
+    line-height:1.25;
+  }
+  .essay-html-preview h1:first-child, .essay-html-preview h2:first-child, .essay-html-preview h3:first-child{margin-top:0;}
+  .essay-html-preview h1{font-size:21px;}
+  .essay-html-preview h2{font-size:18px;}
+  .essay-html-preview h3{font-size:16px;}
+  .essay-html-preview p{margin:0 0 0.9em;}
+  .essay-html-preview p:last-child{margin-bottom:0;}
+  .essay-html-preview strong{font-weight:700;color:var(--ink);}
+  .essay-html-preview ul, .essay-html-preview ol{margin:0 0 0.9em;padding-left:1.3em;}
   .or-divider{
     display:flex;
     align-items:center;
@@ -1137,6 +1162,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 // ---- Firebase-backed replacement for the artifact's window.storage API ----
 // Anyone can use the page with no Claude account: visitors are signed in
@@ -1481,16 +1507,110 @@ function renderMarkdown(raw){
   return blocks.join("");
 }
 
+// ---- EPUB import: pull out just headings/bold/italic/superscript/paragraphs/lists ----
+// EPUBs are a zip of XHTML files, so unlike .docx there's no format-guessing —
+// we unzip, read the spine in order, and keep only a small allow-list of tags.
+// Everything else (colors, fonts, spans, custom classes, embedded styles) is
+// dropped. This also acts as the sanitizer for any HTML-format essay before
+// it's ever inserted into the page, whether it just came from an upload or is
+// being re-rendered later from storage (including imported backups).
+const ESSAY_HTML_ALLOWED_TAGS = new Set(["H1","H2","H3","H4","H5","H6","P","BR","STRONG","B","EM","I","SUP","UL","OL","LI"]);
+
+function sanitizeEssayHtml(rawHtml){
+  const doc = new DOMParser().parseFromString('<div id="essay-sanitize-root">' + String(rawHtml || "") + '</div>', "text/html");
+  const root = doc.getElementById("essay-sanitize-root");
+  if(!root) return "";
+
+  function clean(node){
+    const out = [];
+    node.childNodes.forEach(function(child){
+      if(child.nodeType === Node.TEXT_NODE){
+        out.push(escapeHtml(child.textContent));
+      }else if(child.nodeType === Node.ELEMENT_NODE){
+        const tag = child.tagName;
+        const inner = clean(child);
+        if(tag === "BR"){
+          out.push("<br>");
+        }else if(ESSAY_HTML_ALLOWED_TAGS.has(tag)){
+          const lower = tag.toLowerCase();
+          out.push('<' + lower + '>' + inner + '</' + lower + '>');
+        }else{
+          // Not on the allow-list (div, span, style, img, table, etc.) — unwrap
+          // it and keep whatever allowed content is inside, drop the tag itself.
+          out.push(inner);
+        }
+      }
+    });
+    return out.join("");
+  }
+
+  return clean(root);
+}
+
+async function readEpubToHtml(file){
+  if(typeof JSZip === "undefined"){
+    throw new Error("EPUB support failed to load. Check your connection and try again.");
+  }
+  const buffer = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(buffer);
+
+  const containerFile = zip.file("META-INF/container.xml");
+  if(!containerFile) throw new Error("That doesn't look like a valid EPUB file.");
+  const containerXml = await containerFile.async("string");
+  const containerDoc = new DOMParser().parseFromString(containerXml, "application/xml");
+  const rootfileEl = containerDoc.querySelector("rootfile");
+  const opfPath = rootfileEl && rootfileEl.getAttribute("full-path");
+  if(!opfPath) throw new Error("Could not find the EPUB's contents.");
+
+  const opfFile = zip.file(opfPath);
+  if(!opfFile) throw new Error("Could not find the EPUB's contents.");
+  const opfXml = await opfFile.async("string");
+  const opfDoc = new DOMParser().parseFromString(opfXml, "application/xml");
+  const opfDir = opfPath.includes("/") ? opfPath.slice(0, opfPath.lastIndexOf("/") + 1) : "";
+
+  const manifestItems = {};
+  opfDoc.querySelectorAll("manifest > item").forEach(function(item){
+    manifestItems[item.getAttribute("id")] = item.getAttribute("href");
+  });
+
+  let spineIds = Array.from(opfDoc.querySelectorAll("spine > itemref")).map(function(el){
+    return el.getAttribute("idref");
+  });
+  if(spineIds.length === 0){
+    // Fallback: no spine found, just use every manifest item in document order.
+    spineIds = Object.keys(manifestItems);
+  }
+
+  const htmlParts = [];
+  for(const id of spineIds){
+    const href = manifestItems[id];
+    if(!href) continue;
+    const path = (opfDir + href).replace(/^\.\//, "");
+    const zipFile = zip.file(path) || zip.file(decodeURIComponent(path));
+    if(!zipFile) continue;
+    const xhtml = await zipFile.async("string");
+    const bodyMatch = xhtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    htmlParts.push(bodyMatch ? bodyMatch[1] : xhtml);
+  }
+
+  if(htmlParts.length === 0){
+    throw new Error("Couldn't find any readable content in that EPUB.");
+  }
+
+  return sanitizeEssayHtml(htmlParts.join("\n"));
+}
+
 function showEssayReaderModal(entry){
   const resolved = resolveEssay(entry);
   const num = String(entry.caseNo).padStart(4, "0");
   const metaBits = ["Case No. " + num, entry.category].concat(entry.topic ? [entry.topic] : []);
   const viaNote = resolved.viaKey ? (' &middot; inherited from Case No. ' + String(resolved.viaCaseNo).padStart(4, "0")) : "";
+  const bodyHtml = resolved.format === "html" ? sanitizeEssayHtml(resolved.text || "") : renderMarkdown(resolved.text || "");
   openModal(
     '<div class="modal-overlay"><div class="modal reader-modal">' +
       '<div class="reader-meta">' + escapeHtml(metaBits.join(" \u00b7 ")) + viaNote + '</div>' +
       '<h2>Essay response</h2>' +
-      '<div class="reader-body">' + renderMarkdown(resolved.text || "") + '</div>' +
+      '<div class="reader-body">' + bodyHtml + '</div>' +
       '<div class="reader-footer modal-actions">' +
         '<button class="cancel" id="reader-close">Close</button>' +
       '</div>' +
@@ -1652,15 +1772,15 @@ function normalizeUrl(u){
 
 function resolveEssay(entry){
   if(entry.essayUrl || entry.essayText){
-    return { url: entry.essayUrl, text: entry.essayText, viaKey: null };
+    return { url: entry.essayUrl, text: entry.essayText, format: entry.essayFormat || "markdown", viaKey: null };
   }
   if(entry.linkedTo){
     const target = allEntries.find(function(t){ return t.key === entry.linkedTo; });
     if(target && (target.essayUrl || target.essayText)){
-      return { url: target.essayUrl, text: target.essayText, viaKey: target.key, viaCaseNo: target.caseNo };
+      return { url: target.essayUrl, text: target.essayText, format: target.essayFormat || "markdown", viaKey: target.key, viaCaseNo: target.caseNo };
     }
   }
-  return { url:"", text:"", viaKey:null };
+  return { url:"", text:"", format:"markdown", viaKey:null };
 }
 
 function render(){
@@ -1866,7 +1986,7 @@ async function fileOne(name, category, topic, text, visibility){
   const uid = await authReadyPromise;
   const entry = {
     name:name, category:category, topic:topic, text:text, timestamp: Date.now(),
-    used:false, essayText:"", essayUrl:"", essayFileName:"", linkedTo:"",
+    used:false, essayText:"", essayUrl:"", essayFormat:"markdown", essayFileName:"", linkedTo:"",
     uid:uid,
     ownerId: currentIdentity ? currentIdentity.usernameSlug : "",
     ownerUsername: currentIdentity ? currentIdentity.username : "",
@@ -1982,7 +2102,7 @@ document.getElementById("response-tabs").addEventListener("click", function(ev){
 document.getElementById("export-json").addEventListener("click", function(){
   const data = allEntries.map(function(e){
     const linkedEntry = e.linkedTo ? allEntries.find(function(t){ return t.key === e.linkedTo; }) : null;
-    return { caseNo:e.caseNo, name:e.name, category:e.category, topic:e.topic, text:e.text, used:e.used, essayText:e.essayText, essayUrl:e.essayUrl, linkedToCaseNo: linkedEntry ? linkedEntry.caseNo : "", timestamp:e.timestamp };
+    return { caseNo:e.caseNo, name:e.name, category:e.category, topic:e.topic, text:e.text, used:e.used, essayText:e.essayText, essayFormat:e.essayFormat||"markdown", essayUrl:e.essayUrl, linkedToCaseNo: linkedEntry ? linkedEntry.caseNo : "", timestamp:e.timestamp };
   });
   downloadBlob(JSON.stringify(data, null, 2), "the-docket-export.json", "application/json");
 });
@@ -2006,7 +2126,7 @@ document.getElementById("export-backup").addEventListener("click", function(){
     entries: allEntries.map(function(e){
       return {
         key: e.key, name: e.name, category: e.category, topic: e.topic, text: e.text,
-        timestamp: e.timestamp, used: e.used, essayText: e.essayText || "", essayUrl: e.essayUrl || "",
+        timestamp: e.timestamp, used: e.used, essayText: e.essayText || "", essayFormat: e.essayFormat || "markdown", essayUrl: e.essayUrl || "",
         essayFileName: e.essayFileName || "", linkedTo: e.linkedTo || ""
       };
     })
@@ -2061,7 +2181,7 @@ document.getElementById("list").addEventListener("click", async function(ev){
       await window.storage.delete(key, true);
     }else if(action === "toggle-used"){
       entry.used = !entry.used;
-      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:entry.linkedTo||"" };
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayFormat:entry.essayFormat||"markdown", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:entry.linkedTo||"" };
       await window.storage.set(key, JSON.stringify(toSave), true);
     }
     await loadEntries();
@@ -2114,21 +2234,23 @@ function showBulkDeleteModal(){
 
 function showEssayModal(entry){
   const existingFileName = entry.essayFileName || "";
+  const existingIsHtml = entry.essayFormat === "html" && !!entry.essayText;
   openModal(
     '<div class="modal-overlay"><div class="modal">' +
       '<h2>Attach essay response</h2>' +
-      '<div class="dropzone" id="essay-dropzone" tabindex="0" role="button" aria-label="Upload a text file">' +
+      '<div class="dropzone" id="essay-dropzone" tabindex="0" role="button" aria-label="Upload a file">' +
         '<div class="dropzone-icon" aria-hidden="true">&uarr;</div>' +
         '<div class="dropzone-text" id="dropzone-label">Drop a file here, or <strong>browse</strong></div>' +
-        '<div class="dropzone-sub">.txt or .md &middot; content is read in as text</div>' +
+        '<div class="dropzone-sub">.txt, .md, or .epub &middot; .epub keeps headings, bold, italic, and superscript</div>' +
       '</div>' +
-      '<input type="file" id="essay-file-input" accept=".txt,.md,text/plain,text/markdown" style="display:none;">' +
+      '<input type="file" id="essay-file-input" accept=".txt,.md,.epub,text/plain,text/markdown,application/epub+zip" style="display:none;">' +
       '<div id="file-chip-slot" style="margin-top:0.8rem;"></div>' +
+      '<div id="essay-html-preview-slot"></div>' +
       '<div class="or-divider"><span class="line"></span><span>or</span><span class="line"></span></div>' +
       '<label for="essay-url">Paste a link instead (Google Doc, blog post, etc.)</label>' +
       '<input type="url" id="essay-url" placeholder="https://..." value="' + escapeHtml(entry.essayUrl || "") + '">' +
       '<label for="essay-text">Or type/paste the essay text directly</label>' +
-      '<textarea id="essay-text" style="min-height:120px;" placeholder="Filled in automatically if you upload a file above">' + escapeHtml(entry.essayText || "") + '</textarea>' +
+      '<textarea id="essay-text" style="min-height:120px;" placeholder="Filled in automatically if you upload a .txt or .md file above">' + escapeHtml(existingIsHtml ? "" : (entry.essayText || "")) + '</textarea>' +
       '<div class="status" id="essay-status"></div>' +
       '<div class="modal-actions">' +
         '<button class="cancel" id="essay-cancel">Cancel</button>' +
@@ -2138,6 +2260,25 @@ function showEssayModal(entry){
   );
 
   let currentFileName = existingFileName;
+  // When set, this is sanitized HTML pulled from an .epub upload and takes
+  // priority over the textarea on save. Cleared when the file chip is removed
+  // or a .txt/.md file is uploaded instead.
+  let epubHtml = existingIsHtml ? entry.essayText : "";
+
+  function renderHtmlPreview(){
+    const slot = document.getElementById("essay-html-preview-slot");
+    const textarea = document.getElementById("essay-text");
+    if(epubHtml){
+      slot.innerHTML = '<div class="essay-html-preview">' + epubHtml + '</div>';
+      textarea.disabled = true;
+      textarea.placeholder = "Remove the uploaded EPUB above to type or paste text instead";
+    }else{
+      slot.innerHTML = "";
+      textarea.disabled = false;
+      textarea.placeholder = "Filled in automatically if you upload a .txt or .md file above";
+    }
+  }
+  renderHtmlPreview();
 
   function renderFileChip(){
     const chipSlot = document.getElementById("file-chip-slot");
@@ -2145,8 +2286,10 @@ function showEssayModal(entry){
       chipSlot.innerHTML = '<div class="file-chip"><span>' + escapeHtml(currentFileName) + '</span><button type="button" id="file-chip-remove">Remove</button></div>';
       document.getElementById("file-chip-remove").addEventListener("click", function(){
         currentFileName = "";
+        epubHtml = "";
         document.getElementById("essay-file-input").value = "";
         renderFileChip();
+        renderHtmlPreview();
       });
     }else{
       chipSlot.innerHTML = "";
@@ -2157,22 +2300,35 @@ function showEssayModal(entry){
   const dropzone = document.getElementById("essay-dropzone");
   const fileInput = document.getElementById("essay-file-input");
 
-  function readFile(file){
+  async function readFile(file){
     if(!file) return;
     const label = document.getElementById("dropzone-label");
+    const status = document.getElementById("essay-status");
+    status.textContent = "";
+    const isEpub = /\.epub$/i.test(file.name) || file.type === "application/epub+zip";
     label.textContent = "Reading " + file.name + "\u2026";
-    const reader = new FileReader();
-    reader.onload = function(){
-      document.getElementById("essay-text").value = String(reader.result || "");
-      currentFileName = file.name;
+    try{
+      if(isEpub){
+        epubHtml = await readEpubToHtml(file);
+        currentFileName = file.name;
+      }else{
+        const text = await new Promise(function(resolve, reject){
+          const reader = new FileReader();
+          reader.onload = function(){ resolve(String(reader.result || "")); };
+          reader.onerror = function(){ reject(new Error("read failed")); };
+          reader.readAsText(file);
+        });
+        document.getElementById("essay-text").value = text;
+        epubHtml = "";
+        currentFileName = file.name;
+      }
       label.innerHTML = 'Drop a file here, or <strong>browse</strong>';
       renderFileChip();
-    };
-    reader.onerror = function(){
+      renderHtmlPreview();
+    }catch(e){
       label.innerHTML = 'Drop a file here, or <strong>browse</strong>';
-      document.getElementById("essay-status").textContent = "Could not read that file.";
-    };
-    reader.readAsText(file);
+      status.textContent = e && e.message ? e.message : "Could not read that file.";
+    }
   }
 
   dropzone.addEventListener("click", function(){ fileInput.click(); });
@@ -2197,11 +2353,12 @@ function showEssayModal(entry){
   document.getElementById("essay-cancel").addEventListener("click", closeModal);
   document.getElementById("essay-save").addEventListener("click", async function(){
     const url = document.getElementById("essay-url").value.trim();
-    const text = document.getElementById("essay-text").value.trim();
     const status = document.getElementById("essay-status");
     status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
     try{
-      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayUrl:url, essayText:text, essayFileName:currentFileName, linkedTo:entry.linkedTo||"" };
+      const format = epubHtml ? "html" : "markdown";
+      const text = epubHtml ? epubHtml : document.getElementById("essay-text").value.trim();
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayUrl:url, essayText:text, essayFormat:format, essayFileName:currentFileName, linkedTo:entry.linkedTo||"" };
       const result = await window.storage.set(entry.key, JSON.stringify(toSave), true);
       if(!result) throw new Error("no result");
       closeModal();
@@ -2244,7 +2401,7 @@ function showLinkModal(entry){
     const status = document.getElementById("link-status");
     status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
     try{
-      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:target };
+      const toSave = { name:entry.name, category:entry.category, topic:entry.topic, text:entry.text, timestamp:entry.timestamp, used:entry.used, essayText:entry.essayText||"", essayFormat:entry.essayFormat||"markdown", essayUrl:entry.essayUrl||"", essayFileName:entry.essayFileName||"", linkedTo:target };
       const result = await window.storage.set(entry.key, JSON.stringify(toSave), true);
       if(!result) throw new Error("no result");
       closeModal();
@@ -2385,6 +2542,7 @@ function showImportModal(){
         const toSave = {
           name: raw.name || "", category: raw.category || "", topic: raw.topic || "", text: raw.text || "",
           timestamp: raw.timestamp || Date.now(), used: !!raw.used, essayText: raw.essayText || "",
+          essayFormat: raw.essayFormat || "markdown",
           essayUrl: raw.essayUrl || "", essayFileName: raw.essayFileName || "", linkedTo: raw.linkedTo || ""
         };
         await window.storage.set(newKey, JSON.stringify(toSave), true);
