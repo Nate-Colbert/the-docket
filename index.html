@@ -1509,42 +1509,96 @@ function renderMarkdown(raw){
 
 // ---- EPUB import: pull out just headings/bold/italic/superscript/paragraphs/lists ----
 // EPUBs are a zip of XHTML files, so unlike .docx there's no format-guessing —
-// we unzip, read the spine in order, and keep only a small allow-list of tags.
-// Everything else (colors, fonts, spans, custom classes, embedded styles) is
-// dropped. This also acts as the sanitizer for any HTML-format essay before
-// it's ever inserted into the page, whether it just came from an upload or is
-// being re-rendered later from storage (including imported backups).
-const ESSAY_HTML_ALLOWED_TAGS = new Set(["H1","H2","H3","H4","H5","H6","P","BR","STRONG","B","EM","I","SUP","UL","OL","LI"]);
+// we unzip and read the spine in order. The tricky part: Google Docs' EPUB
+// export doesn't write <strong>/<em>/<sup> — it wraps runs in <span class="c3">
+// and defines the actual formatting in a <style> block (e.g. ".c3{font-weight:700}").
+// So instead of only checking tag names, we also resolve each element's
+// inline style and class-based style and look for font-weight/font-style/
+// vertical-align there. Everything else (colors, fonts, custom classes,
+// embedded CSS) is dropped. This also acts as the sanitizer for any
+// HTML-format essay before it's ever inserted into the page, whether it just
+// came from an upload or is being re-rendered later from storage (including
+// imported backups) — on already-clean input it's a no-op.
+const ESSAY_BLOCK_TAGS = new Set(["H1","H2","H3","H4","H5","H6","P","UL","OL","LI"]);
 
-function sanitizeEssayHtml(rawHtml){
+function parseClassStyleMap(fullText){
+  const map = {};
+  const styleBlocks = fullText.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+  styleBlocks.forEach(function(block){
+    const css = block.replace(/^<style[^>]*>/i, "").replace(/<\/style>$/i, "");
+    const ruleRe = /([^{}]+)\{([^{}]*)\}/g;
+    let m;
+    while((m = ruleRe.exec(css))){
+      const decl = m[2];
+      m[1].split(",").forEach(function(sel){
+        sel = sel.trim();
+        if(sel.charAt(0) === "."){
+          const cls = sel.slice(1).trim();
+          if(cls) map[cls] = (map[cls] || "") + ";" + decl;
+        }
+      });
+    }
+  });
+  return map;
+}
+
+function styleFlags(styleText){
+  return {
+    bold: /font-weight\s*:\s*(bold|bolder|[6-9]00)/i.test(styleText),
+    italic: /font-style\s*:\s*italic/i.test(styleText),
+    sup: /vertical-align\s*:\s*super/i.test(styleText)
+  };
+}
+
+function sanitizeEssayHtml(rawHtml, classStyleMap){
+  const styleMap = classStyleMap || {};
   const doc = new DOMParser().parseFromString('<div id="essay-sanitize-root">' + String(rawHtml || "") + '</div>', "text/html");
   const root = doc.getElementById("essay-sanitize-root");
   if(!root) return "";
 
-  function clean(node){
+  function clean(node, inherited){
     const out = [];
     node.childNodes.forEach(function(child){
       if(child.nodeType === Node.TEXT_NODE){
-        out.push(escapeHtml(child.textContent));
+        let text = escapeHtml(child.textContent);
+        if(text === "") return;
+        if(inherited.bold) text = '<strong>' + text + '</strong>';
+        if(inherited.italic) text = '<em>' + text + '</em>';
+        if(inherited.sup) text = '<sup>' + text + '</sup>';
+        out.push(text);
       }else if(child.nodeType === Node.ELEMENT_NODE){
         const tag = child.tagName;
-        const inner = clean(child);
+        if(tag === "STYLE" || tag === "SCRIPT") return;
+
+        const ownStyle = child.getAttribute("style") || "";
+        const classNames = (child.getAttribute("class") || "").split(/\s+/).filter(Boolean);
+        let classStyle = "";
+        classNames.forEach(function(c){ if(styleMap[c]) classStyle += ";" + styleMap[c]; });
+        const own = styleFlags(ownStyle + ";" + classStyle);
+
+        const merged = {
+          bold: inherited.bold || own.bold || tag === "B" || tag === "STRONG",
+          italic: inherited.italic || own.italic || tag === "I" || tag === "EM",
+          sup: inherited.sup || own.sup || tag === "SUP"
+        };
+
         if(tag === "BR"){
           out.push("<br>");
-        }else if(ESSAY_HTML_ALLOWED_TAGS.has(tag)){
+        }else if(ESSAY_BLOCK_TAGS.has(tag)){
           const lower = tag.toLowerCase();
-          out.push('<' + lower + '>' + inner + '</' + lower + '>');
+          out.push('<' + lower + '>' + clean(child, merged) + '</' + lower + '>');
         }else{
-          // Not on the allow-list (div, span, style, img, table, etc.) — unwrap
-          // it and keep whatever allowed content is inside, drop the tag itself.
-          out.push(inner);
+          // Not a block tag (span, div, font, b/strong/i/em/sup themselves, etc.)
+          // — its formatting effect is already captured in `merged` above and
+          // will be applied to the text nodes inside, so just unwrap the tag.
+          out.push(clean(child, merged));
         }
       }
     });
     return out.join("");
   }
 
-  return clean(root);
+  return clean(root, {bold:false, italic:false, sup:false});
 }
 
 async function readEpubToHtml(file){
@@ -1590,14 +1644,16 @@ async function readEpubToHtml(file){
     if(!zipFile) continue;
     const xhtml = await zipFile.async("string");
     const bodyMatch = xhtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    htmlParts.push(bodyMatch ? bodyMatch[1] : xhtml);
+    const bodyHtml = bodyMatch ? bodyMatch[1] : xhtml;
+    const classMap = parseClassStyleMap(xhtml);
+    htmlParts.push(sanitizeEssayHtml(bodyHtml, classMap));
   }
 
   if(htmlParts.length === 0){
     throw new Error("Couldn't find any readable content in that EPUB.");
   }
 
-  return sanitizeEssayHtml(htmlParts.join("\n"));
+  return htmlParts.join("");
 }
 
 function showEssayReaderModal(entry){
