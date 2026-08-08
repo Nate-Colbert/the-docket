@@ -2,6 +2,7 @@
 <html lang="en" data-theme="claude">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Docket</title>
 <style>
   :root{
@@ -245,7 +246,7 @@
   input[type=text], input[type=password], input[type=url], textarea, select{
     width:100%;
     font-family:var(--body-font);
-    font-size:15px;
+    font-size:16px;
     color:var(--ink);
     background:var(--input-bg);
     border:1px solid var(--input-border);
@@ -1059,9 +1060,36 @@
     .footer-bar{right:0.6rem;bottom:0.6rem;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 1.2rem);}
     header{margin-bottom:1.5rem;}
     .card{padding:1.5rem 1.4rem 1.6rem;}
+
+    /* Bigger touch targets — these were sized for mouse pointers */
+    .tab{padding:0.65rem 1rem;font-size:13px;}
+    .export-btn{padding:0.6rem 0.95rem;}
+    .admin-row button{padding:0.6rem 0.9rem;font-size:12px;}
+    .lock, .edit-heading-btn, #theme-select{padding:0.6rem 0.9rem;}
+    .file-chip button{padding:0.3rem 0.6rem;}
+    .linked-note button, .related-note button, a.essay-link, button.essay-link{padding:0.3rem 0;}
+
+    /* Tabs + export buttons: scroll horizontally instead of wrapping into a
+       cramped multi-row mess on narrow screens. */
+    .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:0.3rem;margin-bottom:1.1rem;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab{flex-shrink:0;}
+    .spacer{display:none;}
+    .export-btn{flex-shrink:0;}
+
+    /* Modal: use more of the screen width/height and reduce padding a touch */
+    .modal-overlay{padding:1rem 0.7rem;align-items:flex-end;}
+    .modal{max-width:100%;max-height:calc(100vh - 2rem);padding:1.4rem;border-radius:16px 16px 0 0;}
+    .modal-actions{flex-direction:column-reverse;}
+    .modal-actions button{width:100%;}
+
+    /* Entry action row: let admin buttons wrap onto full-width rows cleanly */
+    .admin-row{gap:0.6rem;}
+    .admin-row button{flex:1 1 auto;text-align:center;}
   }
 </style>
 </head>
+
 <body>
 <div class="wrap">
 
