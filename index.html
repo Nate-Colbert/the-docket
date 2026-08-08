@@ -1209,6 +1209,7 @@
     <option value="discord">Dark</option>
   </select>
   <button class="edit-heading-btn" id="edit-heading-btn" style="display:none;">Edit text</button>
+  <button class="lock" id="notify-btn" style="display:none;">Email notifications</button>
   <button class="lock" id="lock-btn">Sign in</button>
 </div>
 
@@ -1378,6 +1379,28 @@ function signOut(){
   render();
 }
 
+// ---- Optional email notification preferences ----
+// Stored on the person's own login:{slug} Firestore record, alongside their
+// pinHash — notifyPref is one of "own", "all", or "none" (default). A Cloud
+// Function (deployed separately, not part of this page) reads these when an
+// essay is attached to decide who to email.
+async function getIdentityRecord(slug){
+  try{
+    const res = await window.storage.get("login:" + slug, true);
+    return res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){
+    return null;
+  }
+}
+async function updateNotificationPrefs(slug, email, notifyPref){
+  const key = "login:" + slug;
+  const existing = (await getIdentityRecord(slug)) || {};
+  const updated = Object.assign({}, existing, { email: String(email || "").trim(), notifyPref: notifyPref || "none" });
+  const result = await window.storage.set(key, JSON.stringify(updated), true);
+  if(!result) throw new Error("no result");
+  return updated;
+}
+
 function restoreIdentity(){
   const saved = loadIdentityLocally();
   if(saved && saved.usernameSlug){
@@ -1397,6 +1420,7 @@ function prefillNameFromIdentity(){
 
 function updateAccountUI(){
   const btn = document.getElementById("lock-btn");
+  const notifyBtn = document.getElementById("notify-btn");
   if(!btn) return;
   if(currentIdentity && currentIdentity.isAdmin){
     btn.textContent = "Manager: " + currentIdentity.username + " (sign out)";
@@ -1407,6 +1431,13 @@ function updateAccountUI(){
   }else{
     btn.textContent = "Sign in";
     btn.classList.remove("on");
+  }
+  // Notification prefs are stored on the person's Firestore login record, so
+  // they only make sense for regular signed-in identities — not the reserved
+  // admin username, which doesn't have one.
+  if(notifyBtn){
+    const showNotify = !!(currentIdentity && currentIdentity.usernameSlug !== slugify(ADMIN_USER));
+    notifyBtn.style.display = showNotify ? "inline-block" : "none";
   }
 }
 
@@ -2778,6 +2809,56 @@ function showLoginModal(){
   });
 }
 
+async function showNotifyModal(){
+  if(!currentIdentity) return;
+  const existing = (await getIdentityRecord(currentIdentity.usernameSlug)) || {};
+  const pref = existing.notifyPref || "none";
+  const email = existing.email || "";
+  function radio(value, label){
+    return '<div class="check-row" style="margin-top:0.7rem;">' +
+      '<input type="radio" name="notify-pref" id="notify-' + value + '" value="' + value + '"' + (pref === value ? " checked" : "") + '>' +
+      '<label for="notify-' + value + '">' + label + '</label>' +
+    '</div>';
+  }
+  openModal(
+    '<div class="modal-overlay"><div class="modal">' +
+      '<h2>Email notifications</h2>' +
+      '<div class="hint" style="margin-top:0;">Get an email when an essay response is posted. Leave the email blank (or choose "None") any time to stop.</div>' +
+      '<label for="notify-email">Email address</label>' +
+      '<input type="text" id="notify-email" placeholder="you@example.com" value="' + escapeHtml(email) + '">' +
+      radio("own", "Only responses to my own prompts") +
+      radio("all", "Every response posted") +
+      radio("none", "None &mdash; don&#39;t email me") +
+      '<div class="status" id="notify-status"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="cancel" id="notify-cancel">Cancel</button>' +
+        '<button id="notify-save">Save</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+  document.getElementById("notify-cancel").addEventListener("click", closeModal);
+  document.getElementById("notify-save").addEventListener("click", async function(){
+    const status = document.getElementById("notify-status");
+    const emailVal = document.getElementById("notify-email").value.trim();
+    const selected = document.querySelector('input[name="notify-pref"]:checked');
+    const prefVal = selected ? selected.value : "none";
+    if(prefVal !== "none" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){
+      status.textContent = "Enter a valid email address, or choose \"None\".";
+      return;
+    }
+    const btn = document.getElementById("notify-save");
+    btn.disabled = true;
+    status.innerHTML = '<span class="spinner" aria-hidden="true"></span>Saving\u2026';
+    try{
+      await updateNotificationPrefs(currentIdentity.usernameSlug, emailVal, prefVal);
+      closeModal();
+    }catch(e){
+      status.textContent = "Could not save. Try again.";
+      btn.disabled = false;
+    }
+  });
+}
+
 function showEditHeadingModal(){
   openModal(
     '<div class="modal-overlay"><div class="modal">' +
@@ -2822,6 +2903,8 @@ document.getElementById("lock-btn").addEventListener("click", function(){
     showLoginModal();
   }
 });
+
+document.getElementById("notify-btn").addEventListener("click", showNotifyModal);
 
 document.getElementById("edit-heading-btn").addEventListener("click", showEditHeadingModal);
 
