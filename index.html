@@ -646,18 +646,6 @@
     box-shadow:none;
   }
   a.essay-link:hover, button.essay-link:hover{text-decoration:underline;gap:0.5rem;background:none;box-shadow:none;}
-  .essay-panel{
-    margin-top:0.8rem;
-    padding:1rem 1.1rem;
-    background:var(--essay-panel-bg);
-    border-left:3px solid var(--essay-panel-border);
-    border-radius:0 10px 10px 0;
-    font-family:var(--body-font);
-    font-size:14.5px;
-    line-height:1.6;
-    white-space:pre-wrap;
-    color:var(--ink);
-  }
   .admin-row{
     display:flex;
     gap:0.5rem;
@@ -867,7 +855,86 @@
     background:var(--danger);
     color:#ffffff;
   }
-  .modal-actions button.danger:hover{filter:brightness(1.1);}
+  .modal.reader-modal{
+    max-width:680px;
+    padding:2rem 2.2rem 1.6rem;
+  }
+  .reader-meta{
+    font-family:var(--body-font);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:0.3rem;
+  }
+  .reader-modal h2{
+    margin-bottom:0.9rem;
+  }
+  .reader-body{
+    font-family:var(--body-font);
+    font-size:16px;
+    line-height:1.75;
+    color:var(--ink);
+  }
+  .reader-body h1, .reader-body h2, .reader-body h3,
+  .reader-body h4, .reader-body h5, .reader-body h6{
+    font-family:var(--heading-font);
+    font-weight:var(--heading-weight);
+    letter-spacing:var(--heading-tracking);
+    color:var(--ink);
+    line-height:1.3;
+    margin:1.4em 0 0.5em;
+  }
+  .reader-body h1:first-child, .reader-body h2:first-child, .reader-body h3:first-child{margin-top:0;}
+  .reader-body h1{font-size:26px;}
+  .reader-body h2{font-size:21px;}
+  .reader-body h3{font-size:18px;}
+  .reader-body p{margin:0 0 1em;}
+  .reader-body p:last-child{margin-bottom:0;}
+  .reader-body strong{font-weight:700;color:var(--ink);}
+  .reader-body em{font-style:italic;}
+  .reader-body del{opacity:0.65;}
+  .reader-body a{color:var(--link-color);text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color 0.15s ease;}
+  .reader-body a:hover{text-decoration-color:currentColor;}
+  .reader-body ul, .reader-body ol{margin:0 0 1em;padding-left:1.4em;}
+  .reader-body li{margin-bottom:0.35em;}
+  .reader-body blockquote{
+    margin:0 0 1em;
+    padding:0.2rem 1rem;
+    border-left:3px solid var(--essay-panel-border);
+    color:var(--muted);
+    font-style:italic;
+  }
+  .reader-body blockquote p{margin:0;}
+  .reader-body code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:0.9em;
+    background:var(--input-bg);
+    border:1px solid var(--border-1);
+    border-radius:4px;
+    padding:0.1em 0.4em;
+  }
+  .reader-body pre{
+    background:var(--input-bg);
+    border:1px solid var(--border-1);
+    border-radius:8px;
+    padding:0.9rem 1rem;
+    overflow-x:auto;
+    margin:0 0 1em;
+  }
+  .reader-body pre code{border:none;background:none;padding:0;}
+  .reader-body hr{border:none;border-top:1px solid var(--border-1);margin:1.6em 0;}
+  .reader-footer{
+    margin-top:1.6rem;
+    padding-top:1.2rem;
+    border-top:1px solid var(--border-1);
+  }
+  .reader-footer button{margin-top:0;}
+  @media (max-width:640px){
+    .modal.reader-modal{padding:1.4rem 1.3rem 1.2rem;}
+    .reader-body{font-size:15px;}
+  }
   .admin-note{
     font-family:var(--body-font);
     font-size:11.5px;
@@ -1161,7 +1228,6 @@ let filter = "All";
 let responseFilter = "All";
 let isAdmin = false;
 let siteSettings = Object.assign({}, DEFAULT_SETTINGS);
-let expandedEssays = {};
 let selectedKeys = new Set();
 let currentUid = null;
 let currentIdentity = null; // { username, usernameSlug, isAdmin } once signed in — persists across devices via username+PIN
@@ -1301,6 +1367,136 @@ function linkifyText(raw){
   }
   out += escapeHtml(str.slice(last));
   return out;
+}
+
+// ---- Lightweight markdown renderer for the essay reader ----
+// Deliberately not a full CommonMark implementation — covers what people
+// actually use when writing an essay response: headings, bold/italic,
+// lists, blockquotes, links, inline code, fenced code, horizontal rules,
+// and paragraphs. The whole source is HTML-escaped up front, so anything
+// that isn't recognized as markdown syntax is rendered as safe plain text.
+function mdInline(escapedText){
+  const stashed = [];
+  function stash(html){
+    stashed.push(html);
+    return "\u0000P" + (stashed.length - 1) + "\u0000";
+  }
+  let out = escapedText;
+  out = out.replace(/`([^`\n]+)`/g, function(_, code){ return stash('<code>' + code + '</code>'); });
+  out = out.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/g, function(_, label, url){
+    return stash('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>');
+  });
+  out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  out = out.replace(/(^|[^\w\\])_([^_\n]+)_(?!\w)/g, '$1<em>$2</em>');
+  out = out.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
+  out = out.replace(/\u0000P(\d+)\u0000/g, function(_, i){ return stashed[Number(i)]; });
+  return out;
+}
+function renderMarkdown(raw){
+  const text = escapeHtml(String(raw == null ? "" : raw)).replace(/\r\n/g, "\n");
+  const lines = text.split("\n");
+  const blocks = [];
+  let para = [];
+  let list = null; // { type:"ul"|"ol", items:[] }
+
+  function flushPara(){
+    if(para.length){ blocks.push('<p>' + para.map(mdInline).join("<br>") + '</p>'); para = []; }
+  }
+  function flushList(){
+    if(list){
+      blocks.push('<' + list.type + '>' + list.items.map(function(it){ return '<li>' + mdInline(it) + '</li>'; }).join("") + '</' + list.type + '>');
+      list = null;
+    }
+  }
+
+  let i = 0;
+  while(i < lines.length){
+    const trimmed = lines[i].trim();
+
+    if(trimmed === ""){ flushPara(); flushList(); i++; continue; }
+
+    if(trimmed.slice(0,3) === "```"){
+      flushPara(); flushList();
+      i++;
+      const codeLines = [];
+      while(i < lines.length && lines[i].trim().slice(0,3) !== "```"){ codeLines.push(lines[i]); i++; }
+      i++;
+      blocks.push('<pre><code>' + codeLines.join("\n") + '</code></pre>');
+      continue;
+    }
+
+    const heading = trimmed.match(/^(#{1,6})\s+(.*)$/);
+    if(heading){
+      flushPara(); flushList();
+      const level = heading[1].length;
+      blocks.push('<h' + level + '>' + mdInline(heading[2].trim()) + '</h' + level + '>');
+      i++;
+      continue;
+    }
+
+    if(/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)){
+      flushPara(); flushList();
+      blocks.push('<hr>');
+      i++;
+      continue;
+    }
+
+    if(/^&gt;\s?/.test(trimmed)){
+      flushPara(); flushList();
+      const quoteLines = [];
+      while(i < lines.length && /^&gt;\s?/.test(lines[i].trim())){
+        quoteLines.push(lines[i].trim().replace(/^&gt;\s?/, ""));
+        i++;
+      }
+      blocks.push('<blockquote><p>' + quoteLines.map(mdInline).join("<br>") + '</p></blockquote>');
+      continue;
+    }
+
+    const ul = trimmed.match(/^[-*+]\s+(.*)$/);
+    if(ul){
+      flushPara();
+      if(!list || list.type !== "ul"){ flushList(); list = { type:"ul", items:[] }; }
+      list.items.push(ul[1]);
+      i++;
+      continue;
+    }
+
+    const ol = trimmed.match(/^\d+\.\s+(.*)$/);
+    if(ol){
+      flushPara();
+      if(!list || list.type !== "ol"){ flushList(); list = { type:"ol", items:[] }; }
+      list.items.push(ol[1]);
+      i++;
+      continue;
+    }
+
+    flushList();
+    para.push(trimmed);
+    i++;
+  }
+  flushPara();
+  flushList();
+  return blocks.join("");
+}
+
+function showEssayReaderModal(entry){
+  const resolved = resolveEssay(entry);
+  const num = String(entry.caseNo).padStart(4, "0");
+  const metaBits = ["Case No. " + num, entry.category].concat(entry.topic ? [entry.topic] : []);
+  const viaNote = resolved.viaKey ? (' &middot; inherited from Case No. ' + String(resolved.viaCaseNo).padStart(4, "0")) : "";
+  openModal(
+    '<div class="modal-overlay"><div class="modal reader-modal">' +
+      '<div class="reader-meta">' + escapeHtml(metaBits.join(" \u00b7 ")) + viaNote + '</div>' +
+      '<h2>Essay response</h2>' +
+      '<div class="reader-body">' + renderMarkdown(resolved.text || "") + '</div>' +
+      '<div class="reader-footer modal-actions">' +
+        '<button class="cancel" id="reader-close">Close</button>' +
+      '</div>' +
+    '</div></div>'
+  );
+  document.getElementById("reader-close").addEventListener("click", closeModal);
 }
 
 function openModal(html){
@@ -1538,10 +1734,7 @@ function render(){
     if(resolved.url){
       essayRow = '<div class="essay-row"><a class="essay-link" href="' + escapeHtml(normalizeUrl(resolved.url)) + '" target="_blank" rel="noopener noreferrer">Read essay <span aria-hidden="true">&rarr;</span></a></div>';
     }else if(resolved.text){
-      const expanded = !!expandedEssays[e.key];
-      essayRow = '<div class="essay-row"><button class="essay-link" data-action="toggle-essay" data-key="' + escapeHtml(e.key) + '">' + (expanded ? "Hide essay" : "Read essay") + ' <span aria-hidden="true">' + (expanded ? "&darr;" : "&rarr;") + '</span></button>' +
-        (expanded ? '<div class="essay-panel">' + escapeHtml(resolved.text) + '</div>' : "") +
-        '</div>';
+      essayRow = '<div class="essay-row"><button class="essay-link" data-action="read-essay" data-key="' + escapeHtml(e.key) + '">Read essay <span aria-hidden="true">&rarr;</span></button></div>';
     }
 
     let linkedNote = "";
@@ -1829,9 +2022,9 @@ document.getElementById("list").addEventListener("click", async function(ev){
   const key = btn.dataset.key;
   const action = btn.dataset.action;
 
-  if(action === "toggle-essay"){
-    expandedEssays[key] = !expandedEssays[key];
-    render();
+  if(action === "read-essay"){
+    const entry = visibleEntries.find(function(e){ return e.key === key; });
+    if(entry) showEssayReaderModal(entry);
     return;
   }
 
